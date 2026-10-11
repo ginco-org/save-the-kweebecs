@@ -8,7 +8,7 @@ pluginManagement {
 plugins {
     // Puts hygradle (versionless, via the settings plugin) on the build
     // classpath.
-    id("gg.ginco.hygradle.settings") version "0.5.0"
+    id("gg.ginco.hygradle.settings") version "0.5.1"
 }
 
 rootProject.name = "save-the-kweebecs"

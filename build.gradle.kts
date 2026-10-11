@@ -1,5 +1,5 @@
 plugins {
-    // hygradle comes onto the classpath via gg.ginco.hygradle.settings (0.5.0) in
+    // hygradle comes onto the classpath via gg.ginco.hygradle.settings (0.5.1) in
     // settings.gradle.kts, so no version is declared here.
     id("gg.ginco.hygradle")
     kotlin("jvm") version "2.3.21"
