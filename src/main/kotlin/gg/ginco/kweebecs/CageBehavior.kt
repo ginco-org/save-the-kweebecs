@@ -1,54 +1,58 @@
 package gg.ginco.kweebecs
 
+import com.hypixel.hytale.math.util.ChunkUtil
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import gg.ginco.minigame.behavior.GameBehavior
 import gg.ginco.minigame.behavior.MinigameContext
+import gg.ginco.minigame.util.Regions
 
 /**
  * Cage management (design v1): each `CAGE`-contracted site holds an
- * imprisoned NPC kweebec. Kweebecs break the cage (server-gated breakable
- * block at the anchor), then click the kweebec to save them. Freed cages
- * stay freed; kweebecs win when every cage is freed before the timer.
+ * imprisoned kweebec inside a cage whose bars are
+ * [StkContract.CAGE_BLOCK_ID]. Kweebecs break the cage (the block gate lets
+ * only cage/barricade blocks through), then click the kweebec to save them.
  *
- * v1 slice, wiring-first: the behavior discovers the cage sites and wins
- * the round when all are freed. The physical cage (block + entity +
- * interactable) lands in the next slice — the block-damage gate comes with
- * DamageBlockEvent/BreakBlockEvent systems reserved by the plugin.
+ * This behavior owns cage-site lifecycle:
+ * - activates the block gate for this instance's world;
+ * - **stamps a placeholder cage block** at each site (dev maps made of void
+ *   need a breakable cage piece per site; the authored real world already
+ *   carries its own cage geometry, where the stamp is a harmless extra
+ *   piece at the site's center cell);
+ * - freed bookkeeping lives in [StkBlockGate]: block events are the only
+ *   place cage breaks are observed from.
  */
 class CageBehavior(ctx: MinigameContext) : GameBehavior("stk-cages") {
 
     override val displayName = "SaveTheKweebecs cages"
 
-    /** Anchors are fixed at activate-time; kinds per design v1. */
-    private lateinit var sites: List<CageSite>
-
     override fun onActivate(ctx: MinigameContext) {
-        sites = ctx.regions(StkContract.CAGE).map { CageSite(it, state = State.INTACT) }
+        val sites = ctx.regions(StkContract.CAGE)
         if (sites.isEmpty()) throw IllegalStateException(
             "world missing the CAGE contract regions — not a stk map (found none)")
+        StkBlockGate.activate(ctx.world.name)
+        // On the world thread: chunk reads/writes and the region lookups obey
+        // the store's thread rules.
+        ctx.world.execute {
+            for (site in sites) stampPlaceholderCage(ctx, site)
+        }
     }
 
     override fun onDeactivate(ctx: MinigameContext) {
-        sites = emptyList()
+        // The copied instance world is removed wholesale at teardown; the
+        // gate must not survive into a later round on the same world name.
+        StkBlockGate.deactivate(ctx.world.name)
     }
 
-    /** Disappearance proxy for the physical cage — coming with the block work. */
-    enum class State { INTACT, BROKEN, FREED }
-
-    data class CageSite(val anchorName: Any, val state: State)
-
-    val freedCount: Int get() = sites.count { it.state == State.FREED }
-    val count: Int get() = sites.size
-
-    companion object {
-        /** Marks a cage freed and may end the round. Returns freed/total. */
-        fun onFreed(ctx: MinigameContext, rescuer: UUID, behavior: CageBehavior): Pair<Int, Int> {
-            EconomyBehavior.onRescue(ctx, rescuer)
-            // TODO: win check + Ending phase transition once state lives
-            //  per-cage (needs the freed-count mutation the physical cage
-            //  work provides).
-            return behavior.freedCount to behavior.count
-        }
+    /** Stamps one cage block at the site's center-top cell, best effort. */
+    private fun stampPlaceholderCage(ctx: MinigameContext, site: Regions.RegionInfo) {
+        val centerX = Math.floor((site.minX + site.maxX) / 2.0).toInt()
+        val centerZ = Math.floor((site.minZ + site.maxZ) / 2.0).toInt()
+        val y = Math.floor(site.maxY).toInt() - 1 // top-most cell of the region column
+        // Instance worlds are small; the site cell must be resident right
+        // after open. If not, best-effort skip (the authored world carries
+        // its own cages and stamps are a dev-map nicety).
+        val chunk = ctx.world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(centerX, centerZ))
+        if (chunk == null) return
+        chunk.setBlock(centerX, y, centerZ, StkContract.CAGE_BLOCK_ID)
     }
 }
-
-private typealias UUID = java.util.UUID

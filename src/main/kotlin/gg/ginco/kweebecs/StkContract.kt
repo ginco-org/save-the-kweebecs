@@ -15,6 +15,18 @@ object StkContract {
     /** One per cage site: the plugin manages cage state at this anchor. */
     const val CAGE = "CAGE"
 
+    // Team names — the framework treats teams as open vocabulary; our
+    // definition carries exactly these.
+    const val TEAM_KWEEBEC = "Kweebecs"
+    const val TEAM_TRORK = "Trorks"
+
+    // Block identities — block fates are decided by these ids, everywhere
+    // (no per-block bookkeeping). Both exist in the 0.6.8 assets:
+    // Cage_Trork hitbox + Deco_Trork_Cage item render the Trork cage;
+    // the village wall is the fortification block trorks buy.
+    const val CAGE_BLOCK_ID = "Deco_Trork_Cage"
+    const val BARRICADE_BLOCK_ID = "Wood_Village_Wall_Full"
+
     /** Round contract (design v1): cages freed before timer expiry wins. */
     const val ROUND_SECONDS = 7 * 60
 

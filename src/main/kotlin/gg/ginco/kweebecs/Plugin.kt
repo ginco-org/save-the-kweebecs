@@ -17,6 +17,11 @@ class Plugin(init: JavaPluginInit) : JavaPlugin(init) {
         GameBehaviors.register("stk-cages") { ctx -> CageBehavior(ctx) }
         GameBehaviors.register("stk-economy") { ctx -> EconomyBehavior(ctx) }
         GameBehaviors.register("stk-round") { ctx -> RoundBehavior(ctx) }
+        // Block gate (design v1): block identity decides breakability; see
+        // docs/DESIGN.md "Server mechanism notes".
+        entityStoreRegistry.registerSystem(StkBlockGate.DamageGate())
+        entityStoreRegistry.registerSystem(StkBlockGate.BreakGate())
+        entityStoreRegistry.registerSystem(StkBlockGate.PlaceGate())
         logger.at(Level.INFO).log("behaviors registered: %s", GameBehaviors.ids())
     }
 
