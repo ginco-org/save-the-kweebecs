@@ -11,8 +11,9 @@ version = "0.1.0"
 dependencies {
     // Minigame framework (thin artifact from Maven Central; pulls
     // hytale-codec 1.2.1 and kotlin-stdlib transitively). Bundled into the
-    // plugin jar below and loaded as a sub-plugin via the manifest entry in
-    // the hytale { } block — see README "Framework integration".
+    // Compile-time only — at RUNTIME the classes resolve through the plugin
+    // bridge from the framework plugin installed in mods/ (hard dependency
+    // declared below). Never bundle it: one server, one framework.
     implementation("gg.ginco:hytale-minigame-framework:0.1.1")
 }
 
@@ -22,21 +23,18 @@ hytale {
     description = "Save the Kweebecs minigame for Hytale"
     serverVersion = "0.6.8"
     mainClass = "gg.ginco.kweebecs.Plugin"
-    // Kotlin stdlib is bundled into the plugin jar — the server doesn't provide it.
-    // Also pulls in the minigame framework + hytale-codec (see dependencies {}).
-    bundleDependencies = true
+    // No bundling: the framework must exist exactly ONCE per server (its own
+    // jar in mods/), because each plugin jar gets its own PluginClassLoader —
+    // two bundled copies would mean two frameworks with split static state
+    // (registries, instances, commands). Framework + codec + kotlin-stdlib
+    // classes resolve at runtime through the plugin bridge, which searches
+    // declared hard dependencies FIRST (PluginBridgeClassLoader.loadClass0,
+    // dependency order before the last-resort all-plugins pass).
+    bundleDependencies = false
 
-    // The framework is itself a Hytale plugin (gg.ginco.minigame.Plugin); its
-    // setup() must run for /minigame commands and its systems to exist. The
-    // server reads one manifest.json per jar, so the framework rides along as
-    // a SubPlugins entry: the server instantiates gg.ginco.minigame.Plugin
-    // from this same jar/classloader (PendingLoadJavaPlugin
-    // .createSubPendingLoadPlugin) and inherits missing manifest fields
-    // (Group/Version/ServerVersion) from this plugin's manifest.
-    subPlugin {
-        name = "MinigameFramework"
-        mainClass = "gg.ginco.minigame.Plugin"
-    }
+    // Hard dependency: the server refuses to load this plugin when the
+    // framework plugin (installed from its GitHub Release fat jar) is absent.
+    depends("gg.ginco:MinigameFramework", ">=0.1")
 }
 
 // bundleDependencies unpacks several jars into one (kotlin-stdlib is
