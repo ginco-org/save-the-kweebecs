@@ -8,9 +8,13 @@ package gg.ginco.kweebecs
  * the wrong map.
  */
 object StkContract {
-    /** Framework SPAWN-* type suffixed per team — PhaseSystem teleports by spawn type. */
-    const val SPAWN_KWEEBEC = "SPAWN_KWEEBEC"
-    const val SPAWN_TRORK = "SPAWN_TRORK"
+    /** Framework SPAWN-* type suffixed per team — PhaseSystem teleports by spawn type.
+     *  The framework derives the type id as `SPAWN_` + the uppercase team name
+     *  (Regions.spawnTypeFor): "Kweebecs" → SPAWN_KWEEBECS, "Trorks" → SPAWN_TRORKS.
+     *  Author per-team spawn markers tagged `minigame: <that id>`; teams without
+     *  their own markers fall back to the generic `spawn` pool. */
+    const val SPAWN_KWEEBECS = "SPAWN_KWEEBECS"
+    const val SPAWN_TRORKS = "SPAWN_TRORKS"
 
     /** One per cage site: the plugin manages cage state at this anchor. */
     const val CAGE = "CAGE"

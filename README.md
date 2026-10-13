@@ -34,6 +34,11 @@ server files and authenticates via device-code login:
 
 Plugin metadata lives in the `hytale { }` block in `build.gradle.kts`.
 
+## Asset pack
+
+The jar bundles an asset pack (a game type asset, map assets, and a map
+instance slot): see `docs/ASSETS.md`.
+
 ## Framework integration
 
 The [hytale-minigame-framework](https://github.com/ginco-org/hytale-minigame-framework)

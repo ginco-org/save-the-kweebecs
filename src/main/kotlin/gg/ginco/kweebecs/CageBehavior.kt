@@ -1,7 +1,11 @@
 package gg.ginco.kweebecs
 
-import com.hypixel.hytale.math.util.ChunkUtil
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType
+import com.hypixel.hytale.server.core.universe.world.SetBlockSettings
+import com.hypixel.hytale.server.core.universe.world.chunk.BlockOperations
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
+import com.hypixel.hytale.server.core.util.FillerBlockUtil
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.RotationTuple
 import gg.ginco.minigame.behavior.GameBehavior
 import gg.ginco.minigame.behavior.MinigameContext
 import gg.ginco.minigame.util.Regions
@@ -51,8 +55,23 @@ class CageBehavior(ctx: MinigameContext) : GameBehavior("stk-cages") {
         // Instance worlds are small; the site cell must be resident right
         // after open. If not, best-effort skip (the authored world carries
         // its own cages and stamps are a dev-map nicety).
-        val chunk = ctx.world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(centerX, centerZ))
-        if (chunk == null) return
-        chunk.setBlock(centerX, y, centerZ, StkContract.CAGE_BLOCK_ID)
+        //
+        // Hytale 0.7.0 chunk API: blocks live in per-section ChunkStore
+        // entities; writes go through BlockOperations (the builtin flow),
+        // resolving the section ref by block coordinate.
+        val chunkStore = ctx.world.chunkStore
+        val sectionRef = chunkStore.getChunkSectionReferenceAtBlock(centerX, y, centerZ)
+            ?: return
+        val blockType: BlockType = BlockType.getAssetMap().getAsset(StkContract.CAGE_BLOCK_ID)
+            ?: return
+        BlockOperations.setBlock(
+            chunkStore, sectionRef,
+            centerX, y, centerZ,
+            BlockType.getAssetMap().getIndex(blockType.id),
+            blockType,
+            RotationTuple.NONE_INDEX,
+            FillerBlockUtil.NO_FILLER,
+            SetBlockSettings.NONE,
+        )
     }
 }

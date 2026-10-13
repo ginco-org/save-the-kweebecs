@@ -10,18 +10,19 @@ version = "0.1.0"
 
 dependencies {
     // Minigame framework (thin artifact from Maven Central; pulls
-    // hytale-codec 1.2.1 and kotlin-stdlib transitively). Bundled into the
-    // Compile-time only — at RUNTIME the classes resolve through the plugin
-    // bridge from the framework plugin installed in mods/ (hard dependency
-    // declared below). Never bundle it: one server, one framework.
-    implementation("gg.ginco:hytale-minigame-framework:0.2.0")
+    // hytale-codec and kotlin-stdlib transitively). Compile-time only —
+    // at RUNTIME the classes resolve through the plugin bridge from the
+    // framework plugin installed in mods/ (hard dependency declared below).
+    // Never bundle it: one server, one framework. 0.3.0 carries the
+    // framework-owned Minigame/MinigameMap asset types and the queue flows.
+    implementation("gg.ginco:hytale-minigame-framework:0.3.0")
 }
 
 hytale {
     group = "gg.ginco"
     name = "SaveTheKweebecs"
     description = "Save the Kweebecs minigame for Hytale"
-    serverVersion = "0.6.8"
+    serverVersion = "0.7.0"
     mainClass = "gg.ginco.kweebecs.Plugin"
     // No bundling: the framework must exist exactly ONCE per server (its own
     // jar in mods/), because each plugin jar gets its own PluginClassLoader —
@@ -34,11 +35,20 @@ hytale {
 
     // Hard dependency: the server refuses to load this plugin when the
     // framework plugin (installed from its GitHub Release fat jar) is absent.
-    depends("gg.ginco:MinigameFramework", ">=0.2")
+    // >=0.3 for the framework-owned Minigame/MinigameMap asset types that our
+    // bundled pack feeds (docs/ASSETS.md).
+    depends("gg.ginco:MinigameFramework", ">=0.3")
     // The Kotlin runtime contract: our classes bind stdlib through the
     // carrier's loader; without this hard dep the resolution would be
     // best-effort across whatever else happens to carry stdlib.
     depends("gg.ginco:KotlinForHytale", ">=0.1")
+
+    // Bundle an asset pack INSIDE this plugin jar: the jar itself is registered
+    // as an AssetPack (zip filesystem, PackSource.RUNTIME — see server source
+    // PluginManager.registerAssetPackIfNeeded) right after setup() and before
+    // start(), so assets under src/main/resources' pack layout are live by the
+    // time our start() reads them; see docs/ASSETS.md.
+    includesAssetPack = true
 }
 
 // bundleDependencies unpacks several jars into one (kotlin-stdlib is

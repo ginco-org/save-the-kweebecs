@@ -1,0 +1,484 @@
+{
+  "Points": {
+    "pt_bmn91v": {
+      "Position": {
+        "X": 1.5,
+        "Y": 96.125,
+        "Z": 117.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": -92.67341613769531,
+        "Z": 0.0
+      },
+      "Name": "spawn_kwee_7",
+      "Enabled": true,
+      "Shape": "Sphere",
+      "Tags": {
+        "minigame": "SPAWN_KWEEBECS"
+      }
+    },
+    "pt_emhuac": {
+      "Position": {
+        "X": -1.5,
+        "Y": 96.125,
+        "Z": 123.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": -90.4312515258789,
+        "Z": 0.0
+      },
+      "Name": "spawn_kwee_5",
+      "Enabled": true,
+      "Shape": "Sphere",
+      "Tags": {
+        "minigame": "SPAWN_KWEEBECS"
+      }
+    },
+    "pt_7esa7n": {
+      "Position": {
+        "X": 4.5,
+        "Y": 96.125,
+        "Z": 115.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": -47.80388259887695,
+        "Z": 0.0
+      },
+      "Name": "spawn_kwee_8",
+      "Enabled": true,
+      "Shape": "Sphere",
+      "Tags": {
+        "minigame": "SPAWN_KWEEBECS"
+      }
+    },
+    "pt_cdvlgn": {
+      "Position": {
+        "X": 118.5,
+        "Y": 96.125,
+        "Z": 110.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": 89.90824127197266,
+        "Z": 0.0
+      },
+      "Name": "jail_kwee_7",
+      "Enabled": true,
+      "Shape": "Sphere"
+    },
+    "pt_w0v1oy": {
+      "Position": {
+        "X": 9.5,
+        "Y": 96.125,
+        "Z": 131.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": -88.11279296875,
+        "Z": 0.0
+      },
+      "Name": "spawn_kwee_2",
+      "Enabled": true,
+      "Shape": "Sphere",
+      "Tags": {
+        "minigame": "SPAWN_KWEEBECS"
+      }
+    },
+    "pt_qm9lf2": {
+      "Position": {
+        "X": 110.5,
+        "Y": 100.125,
+        "Z": 82.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": 81.40998840332031,
+        "Z": 0.0
+      },
+      "Name": "spawn_tror_5",
+      "Enabled": true,
+      "Shape": "Sphere",
+      "Tags": {
+        "minigame": "SPAWN_TRORKS"
+      }
+    },
+    "pt_ctl7k2": {
+      "Position": {
+        "X": 3.5,
+        "Y": 96.125,
+        "Z": 132.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": -80.6963882446289,
+        "Z": 0.0
+      },
+      "Name": "spawn_kwee_3",
+      "Enabled": true,
+      "Shape": "Sphere",
+      "Tags": {
+        "minigame": "SPAWN_KWEEBECS"
+      }
+    },
+    "pt_2gqhyz": {
+      "Position": {
+        "X": 106.5,
+        "Y": 94.125,
+        "Z": 133.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": 89.06066131591797,
+        "Z": 0.0
+      },
+      "Name": "spawn_tror_6",
+      "Enabled": true,
+      "Shape": "Sphere",
+      "Tags": {
+        "minigame": "SPAWN_TRORKS"
+      }
+    },
+    "pt_fyxkmy": {
+      "Position": {
+        "X": 117.5,
+        "Y": 98.125,
+        "Z": 149.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": 91.51260375976562,
+        "Z": 0.0
+      },
+      "Name": "jail_kwee_4",
+      "Enabled": true,
+      "Shape": "Sphere"
+    },
+    "pt_7th9vp": {
+      "Position": {
+        "X": 94.5,
+        "Y": 96.125,
+        "Z": 113.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": -86.95872497558594,
+        "Z": 0.0
+      },
+      "Name": "spawn_tror_3",
+      "Enabled": true,
+      "Shape": "Sphere",
+      "Tags": {
+        "minigame": "SPAWN_TRORKS"
+      }
+    },
+    "pt_x85vua": {
+      "Position": {
+        "X": 106.5,
+        "Y": 94.125,
+        "Z": 131.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": 84.62614440917969,
+        "Z": 0.0
+      },
+      "Name": "spawn_tror_8",
+      "Enabled": true,
+      "Shape": "Sphere",
+      "Tags": {
+        "minigame": "SPAWN_TRORKS"
+      }
+    },
+    "pt_m15lwc": {
+      "Position": {
+        "X": 116.0,
+        "Y": 109.125,
+        "Z": 89.0
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": 90.18510437011719,
+        "Z": 0.0
+      },
+      "Name": "jail_kwee_6",
+      "Enabled": true,
+      "Shape": "Sphere"
+    },
+    "pt_fn0qy9": {
+      "Position": {
+        "X": 114.5,
+        "Y": 95.125,
+        "Z": 121.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": 91.28147888183594,
+        "Z": 0.0
+      },
+      "Name": "spawn_tror_7",
+      "Enabled": true,
+      "Shape": "Sphere",
+      "Tags": {
+        "minigame": "SPAWN_TRORKS"
+      }
+    },
+    "pt_olptza": {
+      "Position": {
+        "X": 94.5,
+        "Y": 96.125,
+        "Z": 114.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": -88.15850830078125,
+        "Z": 0.0
+      },
+      "Name": "spawn_tror_2",
+      "Enabled": true,
+      "Shape": "Sphere",
+      "Tags": {
+        "minigame": "SPAWN_TRORKS"
+      }
+    },
+    "pt_h287jg": {
+      "Position": {
+        "X": 120.5,
+        "Y": 95.125,
+        "Z": 138.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": 90.27964782714844,
+        "Z": 0.0
+      },
+      "Name": "spawn_tror_9",
+      "Enabled": true,
+      "Shape": "Sphere",
+      "Tags": {
+        "minigame": "SPAWN_TRORKS"
+      }
+    },
+    "pt_jc60jg": {
+      "Position": {
+        "X": -0.5,
+        "Y": 96.125,
+        "Z": 120.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": -82.42402648925781,
+        "Z": 0.0
+      },
+      "Name": "spawn_kwee_6",
+      "Enabled": true,
+      "Shape": "Sphere",
+      "Tags": {
+        "minigame": "SPAWN_KWEEBECS"
+      }
+    },
+    "pt_pd2cv6": {
+      "Position": {
+        "X": 117.5,
+        "Y": 98.125,
+        "Z": 153.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": 90.46592712402344,
+        "Z": 0.0
+      },
+      "Name": "jail_kwee_1",
+      "Enabled": true,
+      "Shape": "Sphere"
+    },
+    "pt_ouyr69": {
+      "Position": {
+        "X": 106.5,
+        "Y": 94.125,
+        "Z": 132.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": 90.34636688232422,
+        "Z": 0.0
+      },
+      "Name": "spawn_tror_1",
+      "Enabled": true,
+      "Shape": "Sphere",
+      "Tags": {
+        "minigame": "SPAWN_TRORKS"
+      }
+    },
+    "pt_wfk7d9": {
+      "Position": {
+        "X": 118.5,
+        "Y": 96.125,
+        "Z": 106.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": 89.3327407836914,
+        "Z": 0.0
+      },
+      "Name": "jail_kwee_2",
+      "Enabled": true,
+      "Shape": "Sphere"
+    },
+    "pt_5zya1u": {
+      "Position": {
+        "X": 87.5,
+        "Y": 82.125,
+        "Z": 114.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": 88.07091522216797,
+        "Z": 0.0
+      },
+      "Name": "jail_kwee_5",
+      "Enabled": true,
+      "Shape": "Sphere"
+    },
+    "pt_6qipgi": {
+      "Position": {
+        "X": 11.5,
+        "Y": 96.125,
+        "Z": 129.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": -88.56614685058594,
+        "Z": 0.0
+      },
+      "Name": "spawn_kwee_1",
+      "Enabled": true,
+      "Shape": "Sphere",
+      "Tags": {
+        "minigame": "SPAWN_KWEEBECS"
+      }
+    },
+    "pt_aop4n5": {
+      "Position": {
+        "X": 119.5,
+        "Y": 95.125,
+        "Z": 77.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": 44.13877868652344,
+        "Z": 0.0
+      },
+      "Name": "spawn_tror_10",
+      "Enabled": true,
+      "Shape": "Sphere",
+      "Tags": {
+        "minigame": "SPAWN_TRORKS"
+      }
+    },
+    "pt_6vd3mz": {
+      "Position": {
+        "X": 8.5,
+        "Y": 96.125,
+        "Z": 115.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": -91.5322265625,
+        "Z": 0.0
+      },
+      "Name": "spawn_kwee_9",
+      "Enabled": true,
+      "Shape": "Sphere",
+      "Tags": {
+        "minigame": "SPAWN_KWEEBECS"
+      }
+    },
+    "pt_yr0bnu": {
+      "Position": {
+        "X": 11.5,
+        "Y": 96.125,
+        "Z": 117.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": -94.67646789550781,
+        "Z": 0.0
+      },
+      "Name": "spawn_kwee_10",
+      "Enabled": true,
+      "Shape": "Sphere",
+      "Tags": {
+        "minigame": "SPAWN_KWEEBECS"
+      }
+    },
+    "pt_do037b": {
+      "Position": {
+        "X": 133.5,
+        "Y": 102.125,
+        "Z": 128.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": 90.102783203125,
+        "Z": 0.0
+      },
+      "Name": "jail_kwee_3",
+      "Enabled": true,
+      "Shape": "Sphere"
+    },
+    "pt_epk0ba": {
+      "Position": {
+        "X": 119.0,
+        "Y": 92.125,
+        "Z": 100.0
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": 85.70812225341797,
+        "Z": 0.0
+      },
+      "Name": "jail_kwee_8",
+      "Enabled": true,
+      "Shape": "Sphere"
+    },
+    "pt_g71l3i": {
+      "Position": {
+        "X": 0.5,
+        "Y": 96.125,
+        "Z": 129.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": -90.74330139160156,
+        "Z": 0.0
+      },
+      "Name": "spawn_kwee_4",
+      "Enabled": true,
+      "Shape": "Sphere",
+      "Tags": {
+        "minigame": "SPAWN_KWEEBECS"
+      }
+    },
+    "pt_fidt1z": {
+      "Position": {
+        "X": 94.5,
+        "Y": 96.125,
+        "Z": 115.5
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": -89.22437286376953,
+        "Z": 0.0
+      },
+      "Name": "spawn_tror_4",
+      "Enabled": true,
+      "Shape": "Sphere",
+      "Tags": {
+        "minigame": "SPAWN_TRORKS"
+      }
+    }
+  }
+}

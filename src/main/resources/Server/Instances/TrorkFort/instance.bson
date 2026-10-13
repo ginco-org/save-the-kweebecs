@@ -1,0 +1,51 @@
+{
+  "$Comment": "Save the Kweebecs dev template world: static void world, hand-built chunks. Replace SpawnPoint/Seed with the authored map's values; drop the authored chunks/ next to this file (see docs/ASSETS.md).",
+  "RequiredPlugins": {},
+  "ChunkStorage": {
+    "Type": "Hytale"
+  },
+  "GameMode": "Adventure",
+  "IsPvpEnabled": true,
+  "IsSpawningNPC": false,
+  "GameTime": "0001-01-01T07:00:00Z",
+  "IsGameTimePaused": true,
+  "UUID": "00000000-0000-0000-0000-000000000000",
+  "GameplayConfig": "Default",
+  "IsCompassUpdating": false,
+  "IsTicking": true,
+  "IsObjectiveMarkersEnabled": false,
+  "IsSpawnMarkersEnabled": false,
+  "IsSavingPlayers": true,
+  "IsAllNPCFrozen": false,
+  "WorldGen": {
+    "Type": "Void",
+    "Environment": "Default"
+  },
+  "WorldMap": {
+    "Type": "Disabled"
+  },
+  "SpawnProvider": {
+    "Id": "Global",
+    "SpawnPoint": {
+      "X": 0.5,
+      "Y": 100.0,
+      "Z": 0.5,
+      "Pitch": 0,
+      "Yaw": 90,
+      "Roll": 0.0
+    }
+  },
+  "DeleteOnRemove": true,
+  "Seed": 1,
+  "Plugin": {
+    "Instance": {
+      "RemovalConditions": [
+        {
+          "Type": "WorldEmpty",
+          "TimeoutSeconds": 20
+        }
+      ]
+    }
+  },
+  "Version": 2
+}

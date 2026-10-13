@@ -18,6 +18,13 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 class ShopCommand :
     AbstractPlayerCommand("shop", "kweebecs.commands.shop.desc") {
 
+    init {
+        // The economy surface is for players in the round — the server's
+        // default group (hytale:Adventurer); without a gate only admins
+        // could reach it.
+        setPermissionGroups(com.hypixel.hytale.server.core.permissions.provider.HytalePermissionsProvider.GROUP_ADVENTURER)
+    }
+
     override fun execute(
         context: CommandContext,
         store: Store<EntityStore>,

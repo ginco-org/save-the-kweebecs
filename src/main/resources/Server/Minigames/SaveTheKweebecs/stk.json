@@ -1,0 +1,27 @@
+{
+  "DisplayName": "Save the Kweebecs",
+  "DefaultMap": "trork-fort",
+  "Maps": [
+    "trork-fort",
+    "canyon"
+  ],
+  "Behaviors": [
+    "stk-cages",
+    "stk-economy",
+    "stk-round"
+  ],
+  "Teams": [
+    {
+      "Name": "Kweebecs",
+      "Color": 8172354,
+      "MaxPlayers": -1
+    },
+    {
+      "Name": "Trorks",
+      "Color": 12986408,
+      "MaxPlayers": -1
+    }
+  ],
+  "MinPlayers": 2,
+  "MaxPlayers": 20
+}
