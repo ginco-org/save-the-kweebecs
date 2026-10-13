@@ -10,7 +10,7 @@ verified against the 0.6.8→0.7.0 shared source (`PluginManager.load`: `setup0`
 ships with the jar and is live by the time plugins' `start()` rounds read it.
 
 STK ships **data only**: the asset *types* (`Minigame`, `MinigameMap`) and the
-definition compilation are owned by the minigame framework (framework ≥ 0.3,
+definition compilation are owned by the minigame framework (framework ≥ 0.4,
 `gg/ginco/minigame/asset/Assets.kt`), which registers their asset stores in
 its own `setup()`. Our pack feeds both stores via `AssetPackRegisterEvent`,
 and the framework compiles our assets into `MinigameDefinition`s —
@@ -83,8 +83,10 @@ framework's codecs are `AssetBuilderCodec`s.
 ## Resolved plays and maps
 
 For minigame `stk` the framework compiles **one definition** (`stk` — teams,
-behaviors, default map's instance). `/minigame create <minigame> [<map>]`
-decides where it is played (resolved by `DefinitionStore.resolve`):
+behaviors, default map's instance). Where it is played comes from the
+resolution (`DefinitionStore.resolve`) behind the player-facing
+`/minigame queue <minigame> [<map>]` (queued/balanced/auto-started) and the
+admin `/minigame create` (raw/testing):
 
 - `/minigame queue stk` — joins (or creates) the open queue; a **random
   playable** map when none is running and no map was named
@@ -131,8 +133,8 @@ time.
 
 ## Runtime notes (0.6.8→0.7.0 shared source)
 
-- The framework requires **≥ 0.3** (`depends("gg.ginco:MinigameFramework",
-  ">=0.3")`): the asset types and the definition compiler live there.
+- The framework requires **≥ 0.4** (`depends("gg.ginco:MinigameFramework",
+  ">=0.4")`): the asset types and the definition compiler live there.
 - Each minigame plugin's pack registers after that plugin's `setup0()`, so the
   framework's stores (registered during the framework's earlier `setup()`)
   receive the pack through `AssetPackRegisterEvent` — pack order cannot strand

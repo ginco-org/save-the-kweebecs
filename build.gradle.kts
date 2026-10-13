@@ -1,5 +1,5 @@
 plugins {
-    // hygradle comes onto the classpath via gg.ginco.hygradle.settings (0.5.1) in
+    // hygradle comes onto the classpath via gg.ginco.hygradle.settings (0.7.0) in
     // settings.gradle.kts, so no version is declared here.
     id("gg.ginco.hygradle")
     kotlin("jvm") version "2.3.21"
@@ -13,9 +13,10 @@ dependencies {
     // hytale-codec and kotlin-stdlib transitively). Compile-time only —
     // at RUNTIME the classes resolve through the plugin bridge from the
     // framework plugin installed in mods/ (hard dependency declared below).
-    // Never bundle it: one server, one framework. 0.3.0 carries the
-    // framework-owned Minigame/MinigameMap asset types and the queue flows.
-    implementation("gg.ginco:hytale-minigame-framework:0.3.0")
+    // Never bundle it: one server, one framework. 0.4.0 carries the
+    // framework-owned Minigame/MinigameMap asset types, the queue flows and
+    // the member events.
+    implementation("gg.ginco:hytale-minigame-framework:0.4.0")
 }
 
 hytale {
@@ -35,13 +36,14 @@ hytale {
 
     // Hard dependency: the server refuses to load this plugin when the
     // framework plugin (installed from its GitHub Release fat jar) is absent.
-    // >=0.3 for the framework-owned Minigame/MinigameMap asset types that our
-    // bundled pack feeds (docs/ASSETS.md).
-    depends("gg.ginco:MinigameFramework", ">=0.3")
+    // >=0.4 — tracks the framework release we compile against; the
+    // framework-owned Minigame/MinigameMap asset types that our bundled
+    // pack feeds live here (docs/ASSETS.md).
+    depends("gg.ginco:MinigameFramework", ">=0.4")
     // The Kotlin runtime contract: our classes bind stdlib through the
     // carrier's loader; without this hard dep the resolution would be
     // best-effort across whatever else happens to carry stdlib.
-    depends("gg.ginco:KotlinForHytale", ">=0.1")
+    depends("gg.ginco:KotlinForHytale", ">=0.1.1")
 
     // Bundle an asset pack INSIDE this plugin jar: the jar itself is registered
     // as an AssetPack (zip filesystem, PackSource.RUNTIME — see server source
