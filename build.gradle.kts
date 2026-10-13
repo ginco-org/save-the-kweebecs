@@ -14,7 +14,7 @@ dependencies {
     // Compile-time only — at RUNTIME the classes resolve through the plugin
     // bridge from the framework plugin installed in mods/ (hard dependency
     // declared below). Never bundle it: one server, one framework.
-    implementation("gg.ginco:hytale-minigame-framework:0.1.1")
+    implementation("gg.ginco:hytale-minigame-framework:0.2.0")
 }
 
 hytale {
@@ -34,7 +34,11 @@ hytale {
 
     // Hard dependency: the server refuses to load this plugin when the
     // framework plugin (installed from its GitHub Release fat jar) is absent.
-    depends("gg.ginco:MinigameFramework", ">=0.1")
+    depends("gg.ginco:MinigameFramework", ">=0.2")
+    // The Kotlin runtime contract: our classes bind stdlib through the
+    // carrier's loader; without this hard dep the resolution would be
+    // best-effort across whatever else happens to carry stdlib.
+    depends("gg.ginco:KotlinForHytale", ">=0.1")
 }
 
 // bundleDependencies unpacks several jars into one (kotlin-stdlib is
