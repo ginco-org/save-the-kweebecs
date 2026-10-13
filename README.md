@@ -43,39 +43,46 @@ instance slot): see `docs/ASSETS.md`.
 
 The [hytale-minigame-framework](https://github.com/ginco-org/hytale-minigame-framework)
 (`gg.ginco:hytale-minigame-framework`, Maven Central, Apache-2.0) is a
-**compile + runtime dependency**: this plugin bundles it into its own jar and
-the server loads it as a *sub-plugin* of SaveTheKweebecs.
+**compile-time dependency and a runtime hard dependency** — it is NOT
+bundled into this jar.
 
 ### How it works
 
-The server reads exactly one `manifest.json` per plugin jar and instantiates
-its `Main` — a jar on its own cannot be a second plugin. So the framework
-rides along inside our jar:
+Each plugin jar gets its own `PluginClassLoader`, so whatever a jar bundles
+is private to it. Bundling the framework here would fork it: two frameworks
+with split static state (registries, instance ids, stats) and duplicate
+`/minigame` commands. Instead:
 
-1. `implementation("gg.ginco:hytale-minigame-framework:0.1.1")` + hygradle's
-   `bundleDependencies = true` unpack the framework (thin artifact; pulls
-   `hytale-codec` and `kotlin-stdlib` transitively) into the plugin jar.
-   The Hytale Server API stays compile-only — the running server provides it.
-2. The `hytale { subPlugin { name = "MinigameFramework"; mainClass =
-   "gg.ginco.minigame.Plugin" } }` entry stamps a `SubPlugins` list into our
-   `manifest.json`. The server then instantiates the framework's plugin class
-   from the *same* jar and classloader
-   (`PendingLoadJavaPlugin.createSubPendingLoadPlugin`) and inherits missing
-   manifest fields (`Group`, `Version`, …) from ours (`PluginManifest
-   .inherit`); it also adds this plugin as a hard dependency of the framework,
-   so unloading one unloads both.
-3. The alternative — shipping two separate jars and requiring operators to
-   install both — was rejected: sub-plugin bundling is the pattern the
-   framework's own test harness uses (its test jar carries hytest the same
-   way), and it keeps deployment to a single file.
+1. `implementation("gg.ginco:hytale-minigame-framework:0.4.0")` (thin
+   artifact; pulls `hytale-codec` and `kotlin-stdlib` transitively) is
+   compile-time only. The Hytale Server API stays compile-only — the
+   running server provides it.
+2. `bundleDependencies = false` keeps the framework (and everything else)
+   out of our jar.
+3. `depends("gg.ginco:MinigameFramework", ">=0.4")` and
+   `depends("gg.ginco:KotlinForHytale", ">=0.1.1")` stamp hard dependencies
+   into our `manifest.json`: the server refuses to load this plugin when
+   the framework plugin or the Kotlin carrier is absent, and guarantees
+   both load before ours.
+4. At runtime the framework's classes resolve through the server's plugin
+   bridge (`PluginBridgeClassLoader`): own jar → server classpath →
+   declared hard dependencies FIRST, then everything else. Our classes
+   bind the one framework instance in `mods/`, not a private copy.
+
+### Deployment
+
+The framework must exist exactly ONCE per server, installed in `mods/`
+from its GitHub Release fat jar (`hytale-minigame-framework-x.y.z.jar`);
+the Kotlin carrier (`kotlin-for-hytale-x.y.z.jar`) sits next to it. For
+`./gradlew runServer`, drop both jars into `run/mods/` (or point
+`server { extraMods }` at them) — hygradle copies `extraMods` into the
+server's `mods/` at boot.
 
 ### Lifecycle & caveats
 
-- Sub-plugins run **after** their parent at each stage: our `setup()`/`start()`
-  runs first, then the framework's. Call framework APIs from `start()` onward
-  (see `Plugin.start()`); systems/commands are live once the framework has
+- Hard dependencies load before their dependents: the carrier and the
+  framework are live before our `setup()`/`start()`. Call framework APIs
+  from `start()` onward; systems/commands are live once the framework has
   started (`/minigame` responds).
-- The server logs a benign warning that the sub-plugin "does not specify a
-  target server version": hygradle's manifest task cannot yet emit
-  `ServerVersion` per sub-plugin entry. Harmless today; the server says this
-  becomes a hard error in a future release — bump hygradle when it does.
+- The framework's own README ("Packaging: one framework per server")
+  documents the same loadout from the framework's side.
