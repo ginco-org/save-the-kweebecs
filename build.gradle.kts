@@ -23,7 +23,7 @@ hytale {
     group = "gg.ginco"
     name = "SaveTheKweebecs"
     description = "Save the Kweebecs minigame for Hytale"
-    serverVersion = "0.7.0"
+    serverVersion = "0.7.2"
     mainClass = "gg.ginco.kweebecs.Plugin"
     // No bundling: the framework must exist exactly ONCE per server (its own
     // jar in mods/), because each plugin jar gets its own PluginClassLoader —
