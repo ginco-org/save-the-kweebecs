@@ -60,7 +60,7 @@ with split static state (registries, instance ids, stats) and duplicate
 2. `bundleDependencies = false` keeps the framework (and everything else)
    out of our jar.
 3. `depends("gg.ginco:MinigameFramework", ">=0.4")` and
-   `depends("gg.ginco:KotlinForHytale", ">=0.1.1")` stamp hard dependencies
+   `depends("gg.ginco:KotlinForHytale", ">=0.1.2")` stamp hard dependencies
    into our `manifest.json`: the server refuses to load this plugin when
    the framework plugin or the Kotlin carrier is absent, and guarantees
    both load before ours.

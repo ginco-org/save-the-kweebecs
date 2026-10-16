@@ -43,7 +43,7 @@ hytale {
     // The Kotlin runtime contract: our classes bind stdlib through the
     // carrier's loader; without this hard dep the resolution would be
     // best-effort across whatever else happens to carry stdlib.
-    depends("gg.ginco:KotlinForHytale", ">=0.1.1")
+    depends("gg.ginco:KotlinForHytale", ">=0.1.2")
 
     // Bundle an asset pack INSIDE this plugin jar: the jar itself is registered
     // as an AssetPack (zip filesystem, PackSource.RUNTIME — see server source
