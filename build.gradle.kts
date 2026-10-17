@@ -16,7 +16,29 @@ dependencies {
     // Never bundle it: one server, one framework. 0.4.0 carries the
     // framework-owned Minigame/MinigameMap asset types, the queue flows and
     // the member events.
-    implementation("gg.ginco:hytale-minigame-framework:0.4.0")
+    implementation("gg.ginco:hytale-minigame-framework:0.5.0")
+}
+
+// Dependency plugin jars deployed into the dev server's mods/ at boot. hygradle
+// rebuilds mods/ from scratch on every runServer (stale jars from renamed or
+// re-versioned plugins would otherwise load twice), so jars dropped into
+// run/mods/ by hand are wiped — the framework fat jar and the Kotlin carrier
+// must be declared here. Both resolve from the sibling checkouts, the layout
+// this workspace and CI keep.
+val siblingJar: (String, String) -> java.nio.file.Path? = { dir, prefix ->
+    rootProject.file("../$dir/build/libs")
+        .listFiles { f -> f.name.startsWith(prefix) && f.name.endsWith(".jar") }
+        ?.maxByOrNull { it.name }?.toPath()
+}
+
+val frameworkJar = siblingJar("hytale-minigame-framework", "hytale-minigame-framework-")
+val carrierJar = siblingJar("kotlin-for-hytale", "kotlin-for-hytale-")
+if (frameworkJar == null || carrierJar == null) {
+    println(
+        "WARN: framework/carrier jar not found in the sibling checkouts — the dev " +
+            "server will refuse this plugin (its manifest hard-depends on both). " +
+            "Build hytale-minigame-framework and kotlin-for-hytale first."
+    )
 }
 
 hytale {
@@ -51,6 +73,13 @@ hytale {
     // start(), so assets under src/main/resources' pack layout are live by the
     // time our start() reads them; see docs/ASSETS.md.
     includesAssetPack = true
+
+    // The dev server's mods/ is rebuilt from scratch on every runServer, so the
+    // framework fat jar and the Kotlin carrier must be declared here (resolved
+    // above) — dropping them into run/mods/ by hand does not survive a run.
+    server {
+        extraMods.from(listOfNotNull(frameworkJar, carrierJar))
+    }
 }
 
 // bundleDependencies unpacks several jars into one (kotlin-stdlib is

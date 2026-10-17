@@ -74,9 +74,10 @@ with split static state (registries, instance ids, stats) and duplicate
 The framework must exist exactly ONCE per server, installed in `mods/`
 from its GitHub Release fat jar (`hytale-minigame-framework-x.y.z.jar`);
 the Kotlin carrier (`kotlin-for-hytale-x.y.z.jar`) sits next to it. For
-`./gradlew runServer`, drop both jars into `run/mods/` (or point
-`server { extraMods }` at them) — hygradle copies `extraMods` into the
-server's `mods/` at boot.
+`./gradlew runServer` the build resolves both from the sibling checkouts
+(`../hytale-minigame-framework`, `../kotlin-for-hytale`) and declares them
+as `server { extraMods }` — hygradle rebuilds `run/mods/` from scratch on
+every run, so jars dropped in by hand are wiped.
 
 ### Lifecycle & caveats
 
