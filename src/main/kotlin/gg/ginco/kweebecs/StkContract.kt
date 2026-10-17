@@ -11,8 +11,9 @@ object StkContract {
     /** Framework SPAWN-* type suffixed per team — PhaseSystem teleports by spawn type.
      *  The framework derives the type id as `SPAWN_` + the uppercase team name
      *  (Regions.spawnTypeFor): "Kweebecs" → SPAWN_KWEEBECS, "Trorks" → SPAWN_TRORKS.
-     *  Author per-team spawn markers tagged `minigame: <that id>`; teams without
-     *  their own markers fall back to the generic `spawn` pool. */
+     *  Author per-team spawn markers carrying a bare `<that id>` tag key (no
+     *  value — the point tool sets keys without values); teams without their
+     *  own markers fall back to the generic `spawn` pool. */
     const val SPAWN_KWEEBECS = "SPAWN_KWEEBECS"
     const val SPAWN_TRORKS = "SPAWN_TRORKS"
 

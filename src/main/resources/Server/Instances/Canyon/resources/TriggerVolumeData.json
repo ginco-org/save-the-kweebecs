@@ -3,7 +3,7 @@
     "stk-cage-1": {
       "Position": {
         "X": 117.5,
-        "Y": 98.125,
+        "Y": 99.125,
         "Z": 153.5
       },
       "Shape": {
@@ -21,7 +21,7 @@
       },
       "Name": "CAGE",
       "Tags": {
-        "minigame": "CAGE"
+        "CAGE": ""
       },
       "Enabled": true,
       "TargetTypes": [
@@ -32,7 +32,7 @@
     "stk-cage-2": {
       "Position": {
         "X": 118.5,
-        "Y": 96.125,
+        "Y": 97.125,
         "Z": 106.5
       },
       "Shape": {
@@ -50,7 +50,7 @@
       },
       "Name": "CAGE",
       "Tags": {
-        "minigame": "CAGE"
+        "CAGE": ""
       },
       "Enabled": true,
       "TargetTypes": [
@@ -61,7 +61,7 @@
     "stk-cage-3": {
       "Position": {
         "X": 133.5,
-        "Y": 102.125,
+        "Y": 103.125,
         "Z": 128.5
       },
       "Shape": {
@@ -79,7 +79,7 @@
       },
       "Name": "CAGE",
       "Tags": {
-        "minigame": "CAGE"
+        "CAGE": ""
       },
       "Enabled": true,
       "TargetTypes": [
@@ -90,7 +90,7 @@
     "stk-cage-4": {
       "Position": {
         "X": 117.5,
-        "Y": 98.125,
+        "Y": 99.125,
         "Z": 149.5
       },
       "Shape": {
@@ -108,7 +108,7 @@
       },
       "Name": "CAGE",
       "Tags": {
-        "minigame": "CAGE"
+        "CAGE": ""
       },
       "Enabled": true,
       "TargetTypes": [
@@ -119,7 +119,7 @@
     "stk-cage-5": {
       "Position": {
         "X": 87.5,
-        "Y": 82.125,
+        "Y": 83.125,
         "Z": 114.5
       },
       "Shape": {
@@ -137,7 +137,7 @@
       },
       "Name": "CAGE",
       "Tags": {
-        "minigame": "CAGE"
+        "CAGE": ""
       },
       "Enabled": true,
       "TargetTypes": [
@@ -148,7 +148,7 @@
     "stk-cage-6": {
       "Position": {
         "X": 116.0,
-        "Y": 109.125,
+        "Y": 110.125,
         "Z": 89.0
       },
       "Shape": {
@@ -166,7 +166,7 @@
       },
       "Name": "CAGE",
       "Tags": {
-        "minigame": "CAGE"
+        "CAGE": ""
       },
       "Enabled": true,
       "TargetTypes": [
@@ -177,7 +177,7 @@
     "stk-cage-7": {
       "Position": {
         "X": 118.5,
-        "Y": 96.125,
+        "Y": 97.125,
         "Z": 110.5
       },
       "Shape": {
@@ -195,7 +195,7 @@
       },
       "Name": "CAGE",
       "Tags": {
-        "minigame": "CAGE"
+        "CAGE": ""
       },
       "Enabled": true,
       "TargetTypes": [
@@ -206,7 +206,7 @@
     "stk-cage-8": {
       "Position": {
         "X": 119.0,
-        "Y": 92.125,
+        "Y": 93.125,
         "Z": 100.0
       },
       "Shape": {
@@ -224,7 +224,7 @@
       },
       "Name": "CAGE",
       "Tags": {
-        "minigame": "CAGE"
+        "CAGE": ""
       },
       "Enabled": true,
       "TargetTypes": [

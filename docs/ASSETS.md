@@ -44,12 +44,12 @@ morning, haze weather) imported from a universe save. `config.json` became
 NPC/block spawning off, static `WorldMap: Disabled`, `SpawnProvider` fixed to
 authored point `spawn_kwee_1`, `WorldEmpty` removal). The author's 28 points
 became the contract, with per-team spawn pools: the 10 `spawn_kwee_*` points
-carry `minigame: SPAWN_KWEEBECS`, the 10 `spawn_tror_*` points
-`minigame: SPAWN_TRORKS` — the framework's `SPAWN_<TEAM-NAME-uppercase>`
+carry a bare `SPAWN_KWEEBECS` tag key, the 10 `spawn_tror_*` points
+`SPAWN_TRORKS` — the framework's `SPAWN_<TEAM-NAME-uppercase>`
 convention (`Regions.spawnTypeFor("Kweebecs")`; `PhaseSystem` sends each
 player through their team's pool, `i % n` per pool, facing included, falling
-back to generic `minigame: spawn` markers when a team authors none). The 8
-`jail_kwee_*` points became eight `minigame: CAGE` box volumes under the same
+back to generic `spawn`-keyed markers when a team authors none). The 8
+`jail_kwee_*` points became eight `CAGE`-keyed box volumes under the same
 anchors — cage sites must be volumes (`CageBehavior` reads regions, not
 points).
 
@@ -110,9 +110,10 @@ time.
    `StkContract` (`SPAWN_KWEEBEC` / `SPAWN_TRORK` spawn types, one `CAGE`
    volume/point per cage, optional `SHOP_*`): build in a creative/edit world,
    author regions with the vanilla point/volume tools (a region is any point
-   or trigger volume tagged `minigame: <type>` — spawn points tagged
-   `SPAWN_<TEAM>`, cage volumes tagged `CAGE` — see the Canyon import for a
-   worked example), or edit the `PointData.json`/`TriggerVolumeData.json`
+   or trigger volume carrying a bare `<type>` tag key with no value — spawn
+   points keyed `SPAWN_<TEAM>`, cage volumes keyed `CAGE` — the tool sets
+   keys without values; see the Canyon import for a worked example), or edit
+   the `PointData.json`/`TriggerVolumeData.json`
    resources directly. If the edit world's worldgen is
    non-void, make sure every generated chunk you depend on is pregenerated —
    the instance ships its own `chunks/` and generates nothing else (template

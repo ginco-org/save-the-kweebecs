@@ -15,7 +15,7 @@
       "Enabled": true,
       "Shape": "Sphere",
       "Tags": {
-        "minigame": "SPAWN_KWEEBECS"
+        "SPAWN_KWEEBECS": ""
       }
     },
     "pt_emhuac": {
@@ -33,7 +33,7 @@
       "Enabled": true,
       "Shape": "Sphere",
       "Tags": {
-        "minigame": "SPAWN_KWEEBECS"
+        "SPAWN_KWEEBECS": ""
       }
     },
     "pt_7esa7n": {
@@ -51,7 +51,7 @@
       "Enabled": true,
       "Shape": "Sphere",
       "Tags": {
-        "minigame": "SPAWN_KWEEBECS"
+        "SPAWN_KWEEBECS": ""
       }
     },
     "pt_cdvlgn": {
@@ -84,7 +84,7 @@
       "Enabled": true,
       "Shape": "Sphere",
       "Tags": {
-        "minigame": "SPAWN_KWEEBECS"
+        "SPAWN_KWEEBECS": ""
       }
     },
     "pt_qm9lf2": {
@@ -102,7 +102,7 @@
       "Enabled": true,
       "Shape": "Sphere",
       "Tags": {
-        "minigame": "SPAWN_TRORKS"
+        "SPAWN_TRORKS": ""
       }
     },
     "pt_ctl7k2": {
@@ -120,7 +120,7 @@
       "Enabled": true,
       "Shape": "Sphere",
       "Tags": {
-        "minigame": "SPAWN_KWEEBECS"
+        "SPAWN_KWEEBECS": ""
       }
     },
     "pt_2gqhyz": {
@@ -138,7 +138,7 @@
       "Enabled": true,
       "Shape": "Sphere",
       "Tags": {
-        "minigame": "SPAWN_TRORKS"
+        "SPAWN_TRORKS": ""
       }
     },
     "pt_fyxkmy": {
@@ -171,7 +171,7 @@
       "Enabled": true,
       "Shape": "Sphere",
       "Tags": {
-        "minigame": "SPAWN_TRORKS"
+        "SPAWN_TRORKS": ""
       }
     },
     "pt_x85vua": {
@@ -189,7 +189,7 @@
       "Enabled": true,
       "Shape": "Sphere",
       "Tags": {
-        "minigame": "SPAWN_TRORKS"
+        "SPAWN_TRORKS": ""
       }
     },
     "pt_m15lwc": {
@@ -222,7 +222,7 @@
       "Enabled": true,
       "Shape": "Sphere",
       "Tags": {
-        "minigame": "SPAWN_TRORKS"
+        "SPAWN_TRORKS": ""
       }
     },
     "pt_olptza": {
@@ -240,7 +240,7 @@
       "Enabled": true,
       "Shape": "Sphere",
       "Tags": {
-        "minigame": "SPAWN_TRORKS"
+        "SPAWN_TRORKS": ""
       }
     },
     "pt_h287jg": {
@@ -258,7 +258,7 @@
       "Enabled": true,
       "Shape": "Sphere",
       "Tags": {
-        "minigame": "SPAWN_TRORKS"
+        "SPAWN_TRORKS": ""
       }
     },
     "pt_jc60jg": {
@@ -276,7 +276,7 @@
       "Enabled": true,
       "Shape": "Sphere",
       "Tags": {
-        "minigame": "SPAWN_KWEEBECS"
+        "SPAWN_KWEEBECS": ""
       }
     },
     "pt_pd2cv6": {
@@ -309,7 +309,7 @@
       "Enabled": true,
       "Shape": "Sphere",
       "Tags": {
-        "minigame": "SPAWN_TRORKS"
+        "SPAWN_TRORKS": ""
       }
     },
     "pt_wfk7d9": {
@@ -357,7 +357,7 @@
       "Enabled": true,
       "Shape": "Sphere",
       "Tags": {
-        "minigame": "SPAWN_KWEEBECS"
+        "SPAWN_KWEEBECS": ""
       }
     },
     "pt_aop4n5": {
@@ -375,7 +375,7 @@
       "Enabled": true,
       "Shape": "Sphere",
       "Tags": {
-        "minigame": "SPAWN_TRORKS"
+        "SPAWN_TRORKS": ""
       }
     },
     "pt_6vd3mz": {
@@ -393,7 +393,7 @@
       "Enabled": true,
       "Shape": "Sphere",
       "Tags": {
-        "minigame": "SPAWN_KWEEBECS"
+        "SPAWN_KWEEBECS": ""
       }
     },
     "pt_yr0bnu": {
@@ -411,7 +411,7 @@
       "Enabled": true,
       "Shape": "Sphere",
       "Tags": {
-        "minigame": "SPAWN_KWEEBECS"
+        "SPAWN_KWEEBECS": ""
       }
     },
     "pt_do037b": {
@@ -459,7 +459,7 @@
       "Enabled": true,
       "Shape": "Sphere",
       "Tags": {
-        "minigame": "SPAWN_KWEEBECS"
+        "SPAWN_KWEEBECS": ""
       }
     },
     "pt_fidt1z": {
@@ -477,7 +477,7 @@
       "Enabled": true,
       "Shape": "Sphere",
       "Tags": {
-        "minigame": "SPAWN_TRORKS"
+        "SPAWN_TRORKS": ""
       }
     }
   }
