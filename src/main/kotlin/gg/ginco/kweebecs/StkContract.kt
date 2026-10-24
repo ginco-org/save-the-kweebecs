@@ -35,6 +35,9 @@ object StkContract {
     /** Round contract (design v1): cages freed before timer expiry wins. */
     const val ROUND_SECONDS = 7 * 60
 
+    /** The NPC role the caged kweebecs spawn with (game asset `NPC/Attitude/Roles/…`). */
+    const val CAGED_KWEEBEC_ROLE = "Intelligent/Neutral/Kweebec"
+
     /** Economy: coin awards. */
     const val COINS_PER_KILL = 10
     const val COINS_PER_RESCUE = 25

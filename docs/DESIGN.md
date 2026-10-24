@@ -14,23 +14,34 @@ messages that explain the playtest reason.
 ## Objectives
 
 - The Trork fort contains **cages**, each holding an imprisoned NPC kweebec
-  (present in the world asset; positions differ per map, same *count* is a
-  design constant per map).
-- Kweebec rescue sequence per cage: **break the cage → click the kweebec
-  inside** (two steps; a rescued kweebec is saved permanently for the
-  round).
-- **Kweebecs win** when every cage is freed before the round timer runs out.
-- **Trorks win** when the timer expires with any cage intact.
+  (spawned by the plugin at the site's center, role `Intelligent/Neutral/Kweebec`;
+  positions differ per map, same *count* is a design constant per map).
+- Kweebec rescue sequence per cage: **break the cage → click the kweebec**
+  (two steps, both server-verified: the break only OPENS the site; the click
+  on the kweebec NPC rescues them). A rescued kweebec is saved permanently
+  for the round and the NPC despawns.
+- **Kweebecs win** when every caged kweebec is rescued before the round
+  timer runs out (`Phase.ending(WIN_CONDITION)`).
+- **Trorks win** when the timer expires with any kweebec still unrescued
+  (`Phase.ending(TIMEOUT)`).
+- The winner is announced to the instance in chat; Ending is a short
+  teardown window (no results board yet).
+- Caged kweebecs are **unkillable** (damage shielded) — the rescue is the
+  click, not a kill.
 - Players **respawn** (eliminations feed the economy but never end the
-  round early in v1 — revist only if playtest disagrees).
+  round early in v1 — revisit only if playtest disagrees).
 
 ## Economy
 
-- Both teams earn **coins** from kills (and rescues for kweebecs).
+- Both teams earn **coins**: kills for anyone (PvP inside the round),
+  rescues for kweebecs.
 - Coins are player-scoped and persist across respawns within the round
   (dying keeps your coins; the economy rewards participation, not
   survival).
-- `/stk shop` (v1: command shop; an in-world shopkeeper NPC can come later)
+- Coins live in the instance stats (`kills`, `rescues`, `coins` per
+  player — the ledger) mirrored into an in-memory wallet for fast reads;
+  `/shop` shows the balance and spends from the wallet.
+- `/shop` (v1: command shop; an in-world shopkeeper NPC can come later)
 
 | Team | Shop |
 |---|---|
@@ -38,9 +49,11 @@ messages that explain the playtest reason.
 | Trorks | weapons **and fortification blocks** |
 
 - Trork-placed **fortification blocks** are the **only breakable blocks on
-  the map**. All world blocks (the fort shell, terrain) are indestructible.
-  (Enforced server-side: the plugin owns the coordinate set of
-  trork-placed blocks and gates block-damage accordingly.)
+  the map**, alongside the cage bars. All world blocks (the fort shell,
+  terrain) are indestructible.
+  (Enforced server-side by BLOCK IDENTITY, not tracked coordinates: the
+  block gate cancels damage/break on everything whose type is not one of
+  the two breakable ids — no per-block bookkeeping anywhere.)
 
 ## World contract (both the dev map and the real world obey this)
 
@@ -50,8 +63,8 @@ world ships with the same types once region-authoring lands):
 
 | Contract | Meaning |
 |---|---|
-| `SPAWN_TEAM_KWEEBEC` / `SPAWN_TEAM_TRORK` | spawn points per team |
-| `CAGE` region/point per cage site | cage anchor; the plugin manages the cage state at that anchor |
+| `SPAWN_KWEEBECS` / `SPAWN_TRORKS` | spawn points per team — the framework derives the type id as `SPAWN_` + the uppercase team name (`Regions.spawnTypeFor`) |
+| `CAGE` region per cage site | cage anchor; the plugin opens the cage, spawns the kweebec NPC, and tracks the rescue state at that site |
 | `SHOP_KWEEBEC` / `SHOP_TRORK` (optional v1.1) | shop interaction zones |
 
 Behavior code never hardcodes coordinates — it looks up the contract and
@@ -61,31 +74,49 @@ console than silent wrong-plugin-on-wrong-map behavior).
 ## Framework mapping
 
 - 2 teams, round phases via `Phases` (Waiting → Countdown → Playing →
-  Ending → Cleanup); Ending = results board.
-- Coins: `InstanceStats` counters (per-player + total) re-exported to the
-  player as "coins" (kill events → award; rescue → award).
-- Behaviors: a `SaveTheKweebecsGame` behavior family — cage management,
-  rescue interaction, round timer, economy hooks.
+  Ending → Cleanup); the round clock starts at the Countdown→Playing
+  transition (`PhaseChangedEvent`), and both win paths end the round via
+  `Phases.set` + `Phase.ending(reason)`.
+- Behaviors (`stk-cages`, `stk-economy`, `stk-round`) + five ECS gate
+  systems (block damage/break/place, rescue click, kill coins, kweebec
+  shield — see `StkBlocks.kt`) registered once at plugin setup, active
+  only in gated instance worlds.
+- Coins: `InstanceStats` counters (per-player `kills`/`rescues`/`coins` +
+  instance totals) with the wallet as the fast read layer.
 
 ## Deliberately out of v1
 
 - NPC trork mobs (both teams are players; caged kweebecs are the only NPCs)
-- Shopkeeper UI (command shop first)
+- Shopkeeper UI (command shop first) and actual shop offers (deny paths
+  and the balance read exist; offers land with item/block integration)
+- Results board at Ending (chat announcement covers v1)
 - Ranked/balancing systems, multiple rounds, map rotation
 
-## Server mechanism notes (verified against the 0.6.8 shared source)
+## Server mechanism notes (verified against the 0.7.x shared source)
 
 - **Block breakability gate**: `DamageBlockEvent` / `BreakBlockEvent`
-  (cancellable ECS events carrying the target block + damage amount) are
-  consumed by registering entity-event systems — see
-  `TriggerVolumeBlockEventSystems.BlockBroken` for the builtin pattern.
-  The plugin gates them: cancel everything whose target block is not in
-  the plugin-owned breakable set (trork-placed blocks + cage blocks).
-- **Block placement**: `WorldChunk.setBlock(x, y, z, blockType)` (+ id
-  overloads) for both the dev-map build-out and trork fortification.
-- **Rescue click**: `UseEntityEvent.Pre` (interactable NPC entity at the
-  freed cage) for "click the kweebec"; block-gated interactions via
-  `LivingEntityUseBlockEvent` if the cage stays a block in v1.
-- **Economy hooks**: `KillFeedEvent` (damage module) carries
-  killer/decedent for coin awards; player deaths respawn via the vanilla
-  flow (design: respawn, keep coins).
+  (cancellable ECS events carrying the target block) are consumed by
+  `EntityEventSystem`s registered on the entity-store registry (the
+  `TriggerVolumeBlockEventSystems.BlockBroken` builtin pattern; queries are
+  `Archetype.empty()` — the dispatch hands the event's own entity chunk).
+  The plugin gates them: cancel everything whose target block is not one
+  of the two breakable ids. Cage breaks inside a `CAGE` region flip that
+  site INTACT → BROKEN (site state lives in `StkBlockGate`, keyed by
+  world + site id).
+- **Block placement**: `PlaceBlockEvent` cancels for non-Trork actors.
+- **Rescue click**: `UseEntityEvent.Pre` (ECS event dispatched for the
+  interacting player, `getTargetEntity()` = the kweebec NPC) completes the
+  rescue when the site is BROKEN and the clicker is a Kweebec. Kweebec
+  NPCs spawn via `NPCPlugin.spawnNPC(store, role, null, position,
+  rotation)` and are registered by uuid → site for the click lookup and
+  the damage shield.
+- **Kill coins**: `KillFeedEvent.Display` (damage module, dispatched for
+  the decedent) names the killer through `Damage.EntitySource.ref`; both
+  parties must carry the instance membership (`InMinigame`) for the award
+  to pay.
+- **Threading**: ECS event handlers may run mid-scan; store writes
+  (stats, messages, `Phases.set`, `removeEntity`) are deferred to the
+  world thread via `world.execute { … }` from every gate.
+- **Timer**: `MinigameContext.runLater` (tick-scheduled, world thread)
+  started by the Playing transition; expiry re-checks the live phase
+  before declaring the Trork win.

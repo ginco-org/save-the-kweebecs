@@ -1,17 +1,22 @@
 package gg.ginco.kweebecs
 
+import com.hypixel.hytale.component.Ref
+import com.hypixel.hytale.component.Store
+import com.hypixel.hytale.server.core.Message
+import com.hypixel.hytale.server.core.universe.PlayerRef
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import gg.ginco.minigame.behavior.GameBehavior
 import gg.ginco.minigame.behavior.MinigameContext
-import gg.ginco.minigame.util.PlayerSet
-import gg.ginco.minigame.util.Teams
+import gg.ginco.minigame.util.Stats
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Wallets for the round economy (design v1): player-scoped coins, kept
- * across respawns, wiped with the instance ("coins" stat is authoritative —
- * this cache is the dispatch layer for purchase affordances and fast UI
- * reads; the stat survives reloads and is the final word on totals).
+ * across respawns, wiped with the instance. The instance stats ("coins",
+ * "kills", "rescues" — see [StkContract]) are the authoritative ledger,
+ * mirrored by [EconomyBehavior.awardKill]/[awardRescue]; this cache is the
+ * dispatch layer for purchase affordances and fast UI reads.
  */
 object Wallets {
     private val coins = ConcurrentHashMap<UUID, Int>()
@@ -35,22 +40,21 @@ object Wallets {
 
 /**
  * The round economy behavior (design v1): kills earn coins, rescues earn
- * coins, `/stk shop` spends them. Restart-proof: the "coins" stat is the
- * authoritative ledger, this behavior keeps the instance's running tally
- * and mirrors earn/spend into it per player.
+ * coins, `/shop` spends them. Restart-proof: the stats are the ledger, the
+ * wallet is the running tally.
  *
- * TODO(feedback): `MinigameContext.onEvent` reaches only bus events; kill
- * attribution needs `KillFeedEvent` details — fill in once the
- * damage-module integration is verified live (see DESIGN.md).
+ * The award entry points are called from the ECS gates in [StkBlockGate]
+ * ([StkBlockGate.KillCoinGate] for kills, [StkBlockGate.RescueGate] for
+ * rescues) — ECS events are not bus events, so they cannot be observed from
+ * this behavior's [onEvent]; the gates pay through here instead.
  */
 class EconomyBehavior(ctx: MinigameContext) : GameBehavior("stk-economy") {
 
     override val displayName = "SaveTheKweebecs economy (coins)"
 
     override fun onActivate(ctx: MinigameContext) {
-        // TODO: attribute kills -> COINS_PER_KILL once kill feed details are
-        //  verified live; the wallet API is ready for the hook.
-        //  (see DESIGN.md "Economy hooks")
+        // Wallet lifecycle only — awards flow in through the gates (see class
+        // doc); bus-event hooks (join/leave messages etc.) would live here.
     }
 
     override fun onDeactivate(ctx: MinigameContext) {
@@ -58,9 +62,28 @@ class EconomyBehavior(ctx: MinigameContext) : GameBehavior("stk-economy") {
     }
 
     companion object {
-        /** Coins for a rescue — called by [CageBehavior] when a kweebec is freed. */
-        fun onRescue(ctx: MinigameContext, rescuer: UUID) {
-            Wallets.earn(rescuer, StkContract.COINS_PER_RESCUE)
+        /** Coins for a PvP kill inside the round — called by [StkBlockGate.KillCoinGate]. */
+        fun awardKill(store: Store<EntityStore>, controllerRef: Ref<EntityStore>, killer: PlayerRef) =
+            award(store, controllerRef, killer, StkContract.STAT_KILLS, StkContract.COINS_PER_KILL, "kill")
+
+        /** Coins for rescuing a caged kweebec — called by [StkBlockGate.RescueGate]. */
+        fun awardRescue(store: Store<EntityStore>, controllerRef: Ref<EntityStore>, rescuer: PlayerRef) =
+            award(store, controllerRef, rescuer, StkContract.STAT_RESCUES, StkContract.COINS_PER_RESCUE, "rescue")
+
+        /** Wallet + both stat counters + the player-facing award line. */
+        private fun award(
+            store: Store<EntityStore>,
+            controllerRef: Ref<EntityStore>,
+            player: PlayerRef,
+            stat: String,
+            coins: Int,
+            verb: String,
+        ) {
+            Wallets.earn(player.uuid, coins)
+            Stats.addForPlayer(store, controllerRef, player, stat, 1)
+            Stats.addForPlayer(store, controllerRef, player, StkContract.STAT_COINS, coins)
+            player.sendMessage(
+                Message.raw("+$coins coins ($verb) — balance: ${Wallets.balance(player.uuid)}"))
         }
     }
 }

@@ -17,19 +17,20 @@ class Plugin(init: JavaPluginInit) : JavaPlugin(init) {
         GameBehaviors.register("stk-cages") { ctx -> CageBehavior(ctx) }
         GameBehaviors.register("stk-economy") { ctx -> EconomyBehavior(ctx) }
         GameBehaviors.register("stk-round") { ctx -> RoundBehavior(ctx) }
-        // Block gate (design v1): block identity decides breakability; see
-        // docs/DESIGN.md "Server mechanism notes".
+        // Round-critical ECS gates (design v1 — see StkBlockGate): block
+        // identity, the rescue click, kill coins, and the kweebec shield.
         entityStoreRegistry.registerSystem(StkBlockGate.DamageGate())
         entityStoreRegistry.registerSystem(StkBlockGate.BreakGate())
         entityStoreRegistry.registerSystem(StkBlockGate.PlaceGate())
+        entityStoreRegistry.registerSystem(StkBlockGate.RescueGate())
+        entityStoreRegistry.registerSystem(StkBlockGate.KillCoinGate())
+        entityStoreRegistry.registerSystem(StkBlockGate.RescueNpcShield())
         logger.at(Level.INFO).log("behaviors registered: %s", GameBehaviors.ids())
     }
 
     override fun start() {
         logger.at(Level.INFO).log("SaveTheKweebecs started")
         commandRegistry.registerCommand(ShopCommand())
-        // Round wiring TODO: definition save (2 teams, behaviors list) +
-        // /stk commands surface.
         logger.at(Level.INFO).log("Minigame framework reachable: no instance world(s) expected at boot")
     }
 
