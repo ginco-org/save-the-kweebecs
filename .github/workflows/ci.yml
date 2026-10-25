@@ -1,4 +1,4 @@
-# CI for the SaveTheKweebecs plugin.
+# CI for the Save the Kweebecs plugin.
 #
 # `build` compiles the plugin and runs the manifest generation + jar — no
 # Hytale account needed. If integration tests are added later (e.g. via

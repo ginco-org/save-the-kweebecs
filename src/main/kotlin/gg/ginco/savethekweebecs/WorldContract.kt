@@ -1,4 +1,4 @@
-package gg.ginco.kweebecs
+package gg.ginco.savethekweebecs
 
 /**
  * The world-content contract: region types and counts the game looks up in
@@ -7,7 +7,7 @@ package gg.ginco.kweebecs
  * fails loudly when a world is missing one — never silently run the game on
  * the wrong map.
  */
-object StkContract {
+object WorldContract {
     /** Framework SPAWN-* type suffixed per team — PhaseSystem teleports by spawn type.
      *  The framework derives the type id as `SPAWN_` + the uppercase team name
      *  (Regions.spawnTypeFor): "Kweebecs" → SPAWN_KWEEBECS, "Trorks" → SPAWN_TRORKS.
@@ -20,25 +20,19 @@ object StkContract {
     /** One per cage site: the plugin manages cage state at this anchor. */
     const val CAGE = "CAGE"
 
-    // Team names — the framework treats teams as open vocabulary; our
-    // definition carries exactly these.
     const val TEAM_KWEEBEC = "Kweebecs"
     const val TEAM_TRORK = "Trorks"
 
-    // Block identities — block fates are decided by these ids, everywhere
-    // (no per-block bookkeeping). Both exist in the 0.6.8 assets:
-    // Cage_Trork hitbox + Deco_Trork_Cage item render the Trork cage;
-    // the village wall is the fortification block trorks buy.
+    // The only breakable block ids (see BlockGate): the cage bars, and
+    // the fortification wall trorks place.
     const val CAGE_BLOCK_ID = "Deco_Trork_Cage"
     const val BARRICADE_BLOCK_ID = "Wood_Village_Wall_Full"
 
-    /** Round contract (design v1): cages freed before timer expiry wins. */
     const val ROUND_SECONDS = 7 * 60
 
     /** The NPC role the caged kweebecs spawn with (game asset `NPC/Attitude/Roles/…`). */
     const val CAGED_KWEEBEC_ROLE = "Intelligent/Neutral/Kweebec"
 
-    /** Economy: coin awards. */
     const val COINS_PER_KILL = 10
     const val COINS_PER_RESCUE = 25
 

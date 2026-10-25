@@ -1,4 +1,4 @@
-package gg.ginco.kweebecs
+package gg.ginco.savethekweebecs
 
 import com.hypixel.hytale.math.vector.Rotation3f
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType
@@ -13,36 +13,30 @@ import gg.ginco.minigame.behavior.GameBehavior
 import gg.ginco.minigame.behavior.MinigameContext
 import gg.ginco.minigame.util.Regions
 import org.joml.Vector3d
+import kotlin.math.floor
 
 /**
- * Cage management (design v1): each `CAGE`-contracted site holds an
- * imprisoned kweebec NPC inside a cage whose bars are
- * [StkContract.CAGE_BLOCK_ID]. The rescue is two steps (design): kweebecs
- * break the cage (the block gate lets only cage/barricade blocks through),
- * then CLICK the kweebec NPC — [StkBlockGate.RescueGate] completes it.
+ * Cage-site lifecycle: activates the block gate for this instance's world
+ * and registers the site ids with it, stamps a placeholder cage block at
+ * each site (dev maps made of void need a breakable cage piece; on the
+ * authored real world the stamp is a harmless extra piece at the site's
+ * center cell), and spawns the caged kweebec NPC per site, registered as
+ * that site's rescue target (uuid lookup in [BlockGate]).
  *
- * This behavior owns cage-site lifecycle:
- * - activates the block gate for this instance's world and registers the
- *   site ids with it;
- * - **stamps a placeholder cage block** at each site (dev maps made of void
- *   need a breakable cage piece per site; the authored real world already
- *   carries its own cage geometry, where the stamp is a harmless extra
- *   piece at the site's center cell);
- * - **spawns the caged kweebec NPC** at each site's center and registers it
- *   as that site's rescue target (uuid lookup in [StkBlockGate]).
+ * The rescue itself is two steps: kweebecs break the cage, then click the
+ * kweebec NPC — [BlockGate.RescueGate] completes it.
  */
-class CageBehavior(ctx: MinigameContext) : GameBehavior("stk-cages") {
+class CageBehavior(ctx: MinigameContext) : GameBehavior("save-the-kweebecs-cages") {
 
-    override val displayName = "SaveTheKweebecs cages"
+    override val displayName = "Save the Kweebecs cages"
 
     override fun onActivate(ctx: MinigameContext) {
-        val sites = ctx.regions(StkContract.CAGE)
+        val sites = ctx.regions(WorldContract.CAGE)
         if (sites.isEmpty()) throw IllegalStateException(
-            "world missing the CAGE contract regions — not a stk map (found none)")
-        StkBlockGate.activate(ctx.world.name)
-        StkBlockGate.registerSites(ctx.world.name, sites.map { it.id })
-        // On the world thread: chunk reads/writes and the region lookups obey
-        // the store's thread rules.
+            "world missing the CAGE contract regions — not a Save the Kweebecs map (found none)")
+        BlockGate.activate(ctx.world.name)
+        BlockGate.registerSites(ctx.world.name, sites.map { it.id })
+        // Chunk reads/writes are world-thread work.
         ctx.world.execute {
             for (site in sites) {
                 stampPlaceholderCage(ctx, site)
@@ -54,25 +48,20 @@ class CageBehavior(ctx: MinigameContext) : GameBehavior("stk-cages") {
     override fun onDeactivate(ctx: MinigameContext) {
         // The copied instance world is removed wholesale at teardown; the
         // gate must not survive into a later round on the same world name.
-        StkBlockGate.deactivate(ctx.world.name)
+        BlockGate.deactivate(ctx.world.name)
     }
 
     /** Stamps one cage block at the site's center-top cell, best effort. */
     private fun stampPlaceholderCage(ctx: MinigameContext, site: Regions.RegionInfo) {
-        val centerX = Math.floor((site.minX + site.maxX) / 2.0).toInt()
-        val centerZ = Math.floor((site.minZ + site.maxZ) / 2.0).toInt()
-        val y = Math.floor(site.maxY).toInt() - 1 // top-most cell of the region column
-        // Instance worlds are small; the site cell must be resident right
-        // after open. If not, best-effort skip (the authored world carries
-        // its own cages and stamps are a dev-map nicety).
-        //
-        // Hytale 0.7.0 chunk API: blocks live in per-section ChunkStore
-        // entities; writes go through BlockOperations (the builtin flow),
-        // resolving the section ref by block coordinate.
+        val centerX = floor((site.minX + site.maxX) / 2.0).toInt()
+        val centerZ = floor((site.minZ + site.maxZ) / 2.0).toInt()
+        val y = floor(site.maxY).toInt() - 1 // top-most cell of the region column
+        // Best-effort: the authored world carries its own cages, so a stamp
+        // that can't land (cell not resident) is safe to skip.
         val chunkStore = ctx.world.chunkStore
         val sectionRef = chunkStore.getChunkSectionReferenceAtBlock(centerX, y, centerZ)
             ?: return
-        val blockType: BlockType = BlockType.getAssetMap().getAsset(StkContract.CAGE_BLOCK_ID)
+        val blockType: BlockType = BlockType.getAssetMap().getAsset(WorldContract.CAGE_BLOCK_ID)
             ?: return
         BlockOperations.setBlock(
             chunkStore, sectionRef,
@@ -86,7 +75,7 @@ class CageBehavior(ctx: MinigameContext) : GameBehavior("stk-cages") {
     }
 
     /**
-     * Spawns the caged kweebec NPC ([StkContract.CAGED_KWEEBEC_ROLE]) at the
+     * Spawns the caged kweebec NPC ([WorldContract.CAGED_KWEEBEC_ROLE]) at the
      * site's center and registers it as the site's rescue target. Fails
      * loudly: a site without its kweebec can never be rescued, so the round
      * would silently be unwinnable.
@@ -94,15 +83,15 @@ class CageBehavior(ctx: MinigameContext) : GameBehavior("stk-cages") {
     private fun spawnCagedKweebec(ctx: MinigameContext, site: Regions.RegionInfo) {
         val npc = NPCPlugin.get()
             ?: throw IllegalStateException("NPCPlugin not reachable — cannot spawn caged kweebecs")
-        val centerX = Math.floor((site.minX + site.maxX) / 2.0).toInt()
-        val centerZ = Math.floor((site.minZ + site.maxZ) / 2.0).toInt()
+        val centerX = floor((site.minX + site.maxX) / 2.0).toInt()
+        val centerZ = floor((site.minZ + site.maxZ) / 2.0).toInt()
         val position = Vector3d(centerX + 0.5, site.minY + 1.0, centerZ + 0.5)
         val pair = npc.spawnNPC(
-            ctx.store, StkContract.CAGED_KWEEBEC_ROLE, null, position, Rotation3f())
+            ctx.store, WorldContract.CAGED_KWEEBEC_ROLE, null, position, Rotation3f())
             ?: throw IllegalStateException(
-                "caged-kweebec spawn failed (role '${StkContract.CAGED_KWEEBEC_ROLE}' missing?)")
+                "caged-kweebec spawn failed (role '${WorldContract.CAGED_KWEEBEC_ROLE}' missing?)")
         val uuid = ctx.store.getComponent(pair.first(), UUIDComponent.getComponentType())?.uuid
             ?: throw IllegalStateException("spawned caged kweebec has no UUIDComponent")
-        StkBlockGate.registerRescueNpc(ctx.world.name, uuid, site.id)
+        BlockGate.registerRescueNpc(ctx.world.name, uuid, site.id)
     }
 }

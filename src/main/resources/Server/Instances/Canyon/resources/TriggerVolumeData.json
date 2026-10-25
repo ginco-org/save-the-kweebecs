@@ -1,6 +1,6 @@
 {
   "Volumes": {
-    "stk-cage-1": {
+    "cage-1": {
       "Position": {
         "X": 117.5,
         "Y": 99.125,
@@ -29,7 +29,7 @@
       ],
       "KeepLoaded": true
     },
-    "stk-cage-2": {
+    "cage-2": {
       "Position": {
         "X": 118.5,
         "Y": 97.125,
@@ -58,7 +58,7 @@
       ],
       "KeepLoaded": true
     },
-    "stk-cage-3": {
+    "cage-3": {
       "Position": {
         "X": 133.5,
         "Y": 103.125,
@@ -87,7 +87,7 @@
       ],
       "KeepLoaded": true
     },
-    "stk-cage-4": {
+    "cage-4": {
       "Position": {
         "X": 117.5,
         "Y": 99.125,
@@ -116,7 +116,7 @@
       ],
       "KeepLoaded": true
     },
-    "stk-cage-5": {
+    "cage-5": {
       "Position": {
         "X": 87.5,
         "Y": 83.125,
@@ -145,7 +145,7 @@
       ],
       "KeepLoaded": true
     },
-    "stk-cage-6": {
+    "cage-6": {
       "Position": {
         "X": 116.0,
         "Y": 110.125,
@@ -174,7 +174,7 @@
       ],
       "KeepLoaded": true
     },
-    "stk-cage-7": {
+    "cage-7": {
       "Position": {
         "X": 118.5,
         "Y": 97.125,
@@ -203,7 +203,7 @@
       ],
       "KeepLoaded": true
     },
-    "stk-cage-8": {
+    "cage-8": {
       "Position": {
         "X": 119.0,
         "Y": 93.125,

@@ -1,4 +1,4 @@
-package gg.ginco.kweebecs
+package gg.ginco.savethekweebecs
 
 import com.hypixel.hytale.component.Archetype
 import com.hypixel.hytale.component.ArchetypeChunk
@@ -34,42 +34,34 @@ import org.joml.Vector3d
 import org.joml.Vector3i
 
 /**
- * The block gate (design v1), where block fates are decided by BLOCK
- * IDENTITY, not tracked coordinates:
+ * Block fates are decided by BLOCK IDENTITY, not tracked coordinates:
  *
- * - In a gated world only the iron-bar **cage** blocks and the trorks'
- *   **barricade** blocks may be damaged/broken (ids in [StkContract]);
- *   everything else cancels, keeping the authored world (fort shell,
- *   terrain) indestructible — no per-block bookkeeping anywhere.
- * - Placement is Trork-only: barricade-fortifying is their verb; kweebec
- *   placements cancel.
+ * - In a gated world only the cage and barricade blocks may be damaged or
+ *   broken (ids in [WorldContract]); everything else cancels, keeping the
+ *   authored world (fort shell, terrain) indestructible — no per-block
+ *   bookkeeping anywhere.
+ * - Placement is Trork-only.
  * - Breaking a cage block inside a `CAGE` site region OPENS that site
  *   (INTACT → BROKEN); the kweebec inside becomes clickable.
  *
- * The same file carries the two other round-critical gates, because all of
- * them are per-entity-store ECS systems registered once at plugin setup and
- * toggled by the same gated-world set:
+ * The other round-critical gates live here too — all are per-entity-store
+ * ECS systems registered once at plugin setup and toggled by the same
+ * gated-world set ([CageBehavior]'s active window):
  *
- * - [RescueGate] — the rescue click (design: break the cage → click the
- *   kweebec). `UseEntityEvent.Pre` on a registered caged-kweebec NPC flips
- *   BROKEN → SAVED, pays the rescuer, despawns the kweebec, and — when the
- *   last site saves — ends the round as a Kweebec victory.
- * - [KillCoinGate] — kill attribution for the economy:
- *   `KillFeedEvent.Display` (damage module, dispatched for the decedent)
- *   names the killer via `Damage.EntitySource`; PvP inside the round pays
- *   [StkContract.COINS_PER_KILL].
+ * - [RescueGate] — the rescue click: `UseEntityEvent.Pre` on a registered
+ *   caged-kweebec NPC flips BROKEN → SAVED, pays the rescuer, despawns the
+ *   kweebec, and — when the last site saves — ends the round as a Kweebec
+ *   victory.
+ * - [KillCoinGate] — kill attribution: `KillFeedEvent.Display` (dispatched
+ *   for the decedent) names the killer via `Damage.EntitySource`; PvP
+ *   inside the round pays [WorldContract.COINS_PER_KILL].
  * - [RescueNpcShield] — caged kweebecs take no damage; the rescue is the
  *   click, not a kill.
- *
- * Systems register per entity-store (plugin setup, every world); gating
- * toggles with [CageBehavior]'s active window, so all other worlds keep
- * their default behavior.
  */
-object StkBlockGate {
+object BlockGate {
 
     private val gatedWorlds = ConcurrentHashMap.newKeySet<String>()
 
-    /** Per-site rescue lifecycle: intact cage → opened cage → kweebec saved. */
     enum class SiteState { INTACT, BROKEN, SAVED }
 
     private val sites = ConcurrentHashMap<String, ConcurrentHashMap<String, SiteState>>()
@@ -118,17 +110,15 @@ object StkBlockGate {
         return map.replace(siteId, SiteState.BROKEN, SiteState.SAVED)
     }
 
-    /** True when every registered site is SAVED (round win for the kweebecs). */
+    /** True when every registered site is SAVED. */
     fun allRescued(worldName: String): Boolean =
         sites[worldName]?.values?.all { it == SiteState.SAVED } ?: false
 
-    /** The one break decision every block system consults. */
     private fun breakable(blockTypeId: String): Boolean =
-        blockTypeId == StkContract.CAGE_BLOCK_ID || blockTypeId == StkContract.BARRICADE_BLOCK_ID
+        blockTypeId == WorldContract.CAGE_BLOCK_ID || blockTypeId == WorldContract.BARRICADE_BLOCK_ID
 
     private fun worldOf(store: Store<EntityStore>): World = store.externalData.world
 
-    /** The actor's team name, or null when not on any round team. */
     private fun teamNameOf(store: Store<EntityStore>, actor: Ref<EntityStore>): String? {
         val teamRef = store.getComponent(actor, TeamRef.componentType)?.teamRef ?: return null
         return store.getComponent(teamRef, TeamData.componentType)?.name
@@ -138,7 +128,7 @@ object StkBlockGate {
     private fun controllerOf(store: Store<EntityStore>, world: World): Ref<EntityStore>? =
         Instances.findController(world)
 
-    /** Cancels damage on non-breakable blocks in every stk world. */
+    /** Cancels damage on non-breakable blocks in every gated world. */
     class DamageGate : EntityEventSystem<EntityStore, DamageBlockEvent>(DamageBlockEvent::class.java) {
         override fun handle(
             index: Int,
@@ -149,7 +139,7 @@ object StkBlockGate {
         ) {
             val worldName = worldOf(store).name
             if (!gated(worldName)) return
-            if (!breakable(event.blockType.id)) event.setCancelled(true)
+            if (!breakable(event.blockType.id)) event.isCancelled = true
         }
 
         override fun getQuery(): Query<EntityStore>? = Archetype.empty()
@@ -173,17 +163,17 @@ object StkBlockGate {
             if (!gated(world.name)) return
             val typeId = event.blockType.id
             if (!breakable(typeId)) {
-                event.setCancelled(true)
+                event.isCancelled = true
                 return
             }
-            if (typeId != StkContract.CAGE_BLOCK_ID) return
+            if (typeId != WorldContract.CAGE_BLOCK_ID) return
             val position = Vector3d(
                 event.targetBlock.x().toDouble(),
                 event.targetBlock.y().toDouble(),
                 event.targetBlock.z().toDouble())
-            val site = Regions.regionsOf(world, StkContract.CAGE)
+            val site = Regions.regionsOf(world, WorldContract.CAGE)
                 .firstOrNull { it.contains(position) } ?: return
-            if (!StkBlockGate.markBroken(world.name, site.id)) return
+            if (!BlockGate.markBroken(world.name, site.id)) return
             // Store writes must not run mid-dispatch — hop to the world queue.
             world.execute {
                 val controllerRef = controllerOf(store, world) ?: return@execute
@@ -207,8 +197,8 @@ object StkBlockGate {
             val worldName = worldOf(store).name
             if (!gated(worldName)) return
             val actor = chunk.getReferenceTo(index)
-            if (teamNameOf(store, actor) != StkContract.TEAM_TRORK) {
-                event.setCancelled(true)
+            if (teamNameOf(store, actor) != WorldContract.TEAM_TRORK) {
+                event.isCancelled = true
             }
         }
 
@@ -216,10 +206,10 @@ object StkBlockGate {
     }
 
     /**
-     * The rescue click (design step 2): using a registered caged-kweebec NPC
-     * while its cage is BROKEN rescues it. Kweebecs only — a trork click
-     * does nothing. Pays the rescuer, despawns the kweebec, and ends the
-     * round for the kweebecs when the last site saves.
+     * The rescue click: using a registered caged-kweebec NPC while its cage
+     * is BROKEN rescues it. Kweebecs only — a trork click does nothing. Pays
+     * the rescuer, despawns the kweebec, and ends the round for the kweebecs
+     * when the last site saves.
      */
     class RescueGate : EntityEventSystem<EntityStore, UseEntityEvent.Pre>(UseEntityEvent.Pre::class.java) {
         override fun handle(
@@ -233,17 +223,17 @@ object StkBlockGate {
             if (!gated(world.name)) return
             val targetRef = event.targetEntity
             val npcUuid = store.getComponent(targetRef, UUIDComponent.getComponentType())?.uuid ?: return
-            val siteId = StkBlockGate.rescueSiteOf(world.name, npcUuid) ?: return
+            val siteId = BlockGate.rescueSiteOf(world.name, npcUuid) ?: return
             val clickerRef = chunk.getReferenceTo(index)
-            if (teamNameOf(store, clickerRef) != StkContract.TEAM_KWEEBEC) return
-            if (!StkBlockGate.markRescued(world.name, siteId)) return
+            if (teamNameOf(store, clickerRef) != WorldContract.TEAM_KWEEBEC) return
+            if (!BlockGate.markRescued(world.name, siteId)) return
             world.execute {
                 val controllerRef = controllerOf(store, world) ?: return@execute
                 val clicker = store.getComponent(clickerRef, PlayerRef.getComponentType())
                     ?: return@execute
                 EconomyBehavior.awardRescue(store, controllerRef, clicker)
                 store.removeEntity(targetRef, RemoveReason.REMOVE)
-                if (StkBlockGate.allRescued(world.name)) {
+                if (BlockGate.allRescued(world.name)) {
                     PlayerSet(store, controllerRef).sendMessage(Message.raw(
                         "Every kweebec is rescued — Kweebecs win!"))
                     Phases.set(store, controllerRef, Phase.ending(EndReason.WIN_CONDITION))
@@ -255,10 +245,10 @@ object StkBlockGate {
     }
 
     /**
-     * Kill coins (design economy): `KillFeedEvent.Display` is dispatched for
+     * Kill coins: `KillFeedEvent.Display` is dispatched for
      * the decedent and carries the damage source; an entity source that is a
      * round member killing another round member of this instance pays
-     * [StkContract.COINS_PER_KILL]. NPC deaths (incl. caged kweebecs) pay
+     * [WorldContract.COINS_PER_KILL]. NPC deaths (incl. caged kweebecs) pay
      * nothing — they carry no membership.
      */
     class KillCoinGate : EntityEventSystem<EntityStore, KillFeedEvent.Display>(KillFeedEvent.Display::class.java) {
@@ -306,7 +296,7 @@ object StkBlockGate {
             if (!gated(worldName)) return
             val victimRef = chunk.getReferenceTo(index)
             val uuid = store.getComponent(victimRef, UUIDComponent.getComponentType())?.uuid ?: return
-            if (StkBlockGate.rescueSiteOf(worldName, uuid) != null) event.setCancelled(true)
+            if (BlockGate.rescueSiteOf(worldName, uuid) != null) event.isCancelled = true
         }
 
         override fun getQuery(): Query<EntityStore>? = Archetype.empty()

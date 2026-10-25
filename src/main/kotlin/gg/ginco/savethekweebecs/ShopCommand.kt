@@ -1,4 +1,4 @@
-package gg.ginco.kweebecs
+package gg.ginco.savethekweebecs
 
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.component.Store
@@ -10,18 +10,16 @@ import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 
 /**
- * v1 shop (design v1): command-driven; coins are player-scoped and
- * respawn-proof. Kweebecs buy infiltration gear, Trorks buy weapons and
- * fortification blocks. Offers fill in as item/block placement APIs are
- * integrated; the deny paths live here from the start.
+ * Command-driven shop; coins are player-scoped and respawn-proof. Kweebecs
+ * buy infiltration gear, Trorks buy weapons and fortification blocks.
+ * Offers land with item/block placement integration; the deny paths live
+ * here from the start.
  */
 class ShopCommand :
-    AbstractPlayerCommand("shop", "kweebecs.commands.shop.desc") {
+    AbstractPlayerCommand("shop", "savethekweebecs.commands.shop.desc") {
 
     init {
-        // The economy surface is for players in the round — the server's
-        // default group (hytale:Adventurer); without a gate only admins
-        // could reach it.
+        // The server's default group; without it only admins reach the command.
         setPermissionGroups(com.hypixel.hytale.server.core.permissions.provider.HytalePermissionsProvider.GROUP_ADVENTURER)
     }
 

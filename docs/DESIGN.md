@@ -1,4 +1,4 @@
-# Save the Kweebecs — game design (v1)
+# Save the Kweebecs — game design
 
 Two-team asymmetric PvP. Authoritative rules captured here; behavior code
 must match this document, and this document changes only through commit
@@ -29,7 +29,7 @@ messages that explain the playtest reason.
 - Caged kweebecs are **unkillable** (damage shielded) — the rescue is the
   click, not a kill.
 - Players **respawn** (eliminations feed the economy but never end the
-  round early in v1 — revisit only if playtest disagrees).
+  round early — revisit only if playtest disagrees).
 
 ## Economy
 
@@ -41,7 +41,7 @@ messages that explain the playtest reason.
 - Coins live in the instance stats (`kills`, `rescues`, `coins` per
   player — the ledger) mirrored into an in-memory wallet for fast reads;
   `/shop` shows the balance and spends from the wallet.
-- `/shop` (v1: command shop; an in-world shopkeeper NPC can come later)
+- `/shop` — a command shop for now; an in-world shopkeeper NPC can come later
 
 | Team | Shop |
 |---|---|
@@ -65,7 +65,7 @@ world ships with the same types once region-authoring lands):
 |---|---|
 | `SPAWN_KWEEBECS` / `SPAWN_TRORKS` | spawn points per team — the framework derives the type id as `SPAWN_` + the uppercase team name (`Regions.spawnTypeFor`) |
 | `CAGE` region per cage site | cage anchor; the plugin opens the cage, spawns the kweebec NPC, and tracks the rescue state at that site |
-| `SHOP_KWEEBEC` / `SHOP_TRORK` (optional v1.1) | shop interaction zones |
+| `SHOP_KWEEBEC` / `SHOP_TRORK` (optional) | shop interaction zones |
 
 Behavior code never hardcodes coordinates — it looks up the contract and
 fails loudly at instance start when the world is missing it (better a red
@@ -77,22 +77,22 @@ console than silent wrong-plugin-on-wrong-map behavior).
   Ending → Cleanup); the round clock starts at the Countdown→Playing
   transition (`PhaseChangedEvent`), and both win paths end the round via
   `Phases.set` + `Phase.ending(reason)`.
-- Behaviors (`stk-cages`, `stk-economy`, `stk-round`) + five ECS gate
+- Behaviors (`save-the-kweebecs-cages`, `save-the-kweebecs-economy`, `save-the-kweebecs-round`) + five ECS gate
   systems (block damage/break/place, rescue click, kill coins, kweebec
-  shield — see `StkBlocks.kt`) registered once at plugin setup, active
+  shield — see `BlockGate.kt`) registered once at plugin setup, active
   only in gated instance worlds.
 - Coins: `InstanceStats` counters (per-player `kills`/`rescues`/`coins` +
   instance totals) with the wallet as the fast read layer.
 
-## Deliberately out of v1
+## Deliberately out of scope
 
 - NPC trork mobs (both teams are players; caged kweebecs are the only NPCs)
 - Shopkeeper UI (command shop first) and actual shop offers (deny paths
   and the balance read exist; offers land with item/block integration)
-- Results board at Ending (chat announcement covers v1)
+- Results board at Ending (a chat announcement covers it)
 - Ranked/balancing systems, multiple rounds, map rotation
 
-## Server mechanism notes (verified against the 0.7.x shared source)
+## Server mechanism notes
 
 - **Block breakability gate**: `DamageBlockEvent` / `BreakBlockEvent`
   (cancellable ECS events carrying the target block) are consumed by
@@ -101,7 +101,7 @@ console than silent wrong-plugin-on-wrong-map behavior).
   `Archetype.empty()` — the dispatch hands the event's own entity chunk).
   The plugin gates them: cancel everything whose target block is not one
   of the two breakable ids. Cage breaks inside a `CAGE` region flip that
-  site INTACT → BROKEN (site state lives in `StkBlockGate`, keyed by
+  site INTACT → BROKEN (site state lives in `BlockGate`, keyed by
   world + site id).
 - **Block placement**: `PlaceBlockEvent` cancels for non-Trork actors.
 - **Rescue click**: `UseEntityEvent.Pre` (ECS event dispatched for the

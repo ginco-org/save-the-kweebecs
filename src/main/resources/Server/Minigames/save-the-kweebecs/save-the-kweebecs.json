@@ -5,9 +5,9 @@
     "canyon"
   ],
   "Behaviors": [
-    "stk-cages",
-    "stk-economy",
-    "stk-round"
+    "save-the-kweebecs-cages",
+    "save-the-kweebecs-economy",
+    "save-the-kweebecs-round"
   ],
   "Teams": [
     {

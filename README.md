@@ -2,6 +2,16 @@
 
 A Hytale plugin (minigame) built with [hygradle](https://plugins.gradle.org/plugin/gg.ginco.hygradle).
 
+## Naming
+
+The project name is `save-the-kweebecs`; context picks the spelling:
+
+- Prose (docs, logs, display names, descriptions): `Save the Kweebecs`
+- Machine ids, paths, filenames, command args: `save-the-kweebecs`
+- Kotlin identifiers (dashes illegal): `savethekweebecs`
+
+No `stk` abbreviation; bare `kweebecs` never names the project. `Kweebecs`/`Trorks` are the in-game factions only (team names, the `SPAWN_KWEEBECS` region tag, the NPC role `Intelligent/Neutral/Kweebec`).
+
 ## Development
 
 Enter the dev shell (JDK 25, kotlin-language-server, ktfmt):

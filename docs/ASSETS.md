@@ -3,13 +3,12 @@
 The plugin jar **is** its own asset pack. `build.gradle.kts` sets
 `includesAssetPack = true`, hygradle stamps `IncludesAssetPack: true` into
 `manifest.json`, and the server registers the jar itself as an `AssetPack`
-(zip filesystem, `PackSource.RUNTIME`) right after `setup()` returns —
-verified against the 0.6.8→0.7.0 shared source (`PluginManager.load`: `setup0` →
-`registerAssetPackIfNeeded` — dispatches `AssetPackRegisterEvent` — →
-`start0`). Anything under `src/main/resources/` following the pack layout
+(zip filesystem, `PackSource.RUNTIME`) right after `setup()` returns,
+dispatching `AssetPackRegisterEvent`. Anything under `src/main/resources/`
+following the pack layout
 ships with the jar and is live by the time plugins' `start()` rounds read it.
 
-STK ships **data only**: the asset *types* (`Minigame`, `MinigameMap`) and the
+Save the Kweebecs ships **data only**: the asset *types* (`Minigame`, `MinigameMap`) and the
 definition compilation are owned by the minigame framework (framework ≥ 0.4,
 `gg/ginco/minigame/asset/Assets.kt`), which registers their asset stores in
 its own `setup()`. Our pack feeds both stores via `AssetPackRegisterEvent`,
@@ -20,9 +19,9 @@ and the framework compiles our assets into `MinigameDefinition`s —
 
 ```
 Server/
-├── Minigames/SaveTheKweebecs/
-│   └── stk.json                  # Minigame asset (id "stk"; Maps: canyon)
-├── MinigameMaps/SaveTheKweebecs/
+├── Minigames/save-the-kweebecs/
+│   └── save-the-kweebecs.json    # Minigame asset (id "save-the-kweebecs"; Maps: canyon)
+├── MinigameMaps/save-the-kweebecs/
 │   └── canyon.json               # MinigameMap asset (id "canyon")
 └── Instances/
     └── Canyon/
@@ -56,8 +55,8 @@ points).
 |---|---|---|
 | `DisplayName` | string | shown to players |
 | `Maps` | string[] | map asset ids this game type is playable on; empty = legacy in-world mode |
-| `DefaultMap` | string | which listed map the bare `stk` definition points at; required once more than one map is listed |
-| `Behaviors` | string[] | `GameBehaviors` ids activated for every instance (`stk-cages`, `stk-economy`, `stk-round`) |
+| `DefaultMap` | string | which listed map the bare `save-the-kweebecs` definition points at; required once more than one map is listed |
+| `Behaviors` | string[] | `GameBehaviors` ids activated for every instance (`save-the-kweebecs-cages`, `save-the-kweebecs-economy`, `save-the-kweebecs-round`) |
 | `Teams` | TeamDefinition[] | `{ Name, Color (int), MaxPlayers (-1 = unlimited) }` — the same codec as saved definitions |
 | `MinPlayers` | int | auto-start floor: the queue moves Waiting → Countdown once this many players are in (`<= 0` = manual start only). Shipped value: 2 |
 | `MaxPlayers` | int | join cap; `<= 0` = uncapped. Shipped value: 20 (10 authored spawn points per side) |
@@ -77,16 +76,16 @@ framework's codecs are `AssetBuilderCodec`s.
 
 ## Resolved plays and maps
 
-For minigame `stk` the framework compiles **one definition** (`stk` — teams,
+For minigame `save-the-kweebecs` the framework compiles **one definition** (`save-the-kweebecs` — teams,
 behaviors, default map's instance). Where it is played comes from the
 resolution (`DefinitionStore.resolve`) behind the player-facing
 `/minigame queue <minigame> [<map>]` (queued/balanced/auto-started) and the
 admin `/minigame create` (raw/testing):
 
-- `/minigame queue stk` — joins (or creates) the open queue; a **random
+- `/minigame queue save-the-kweebecs` — joins (or creates) the open queue; a **random
   playable** map when none is running and no map was named
-- `/minigame queue stk canyon` — queueing that map's instance
-- `/minigame create stk [map]` stays the admin/testing surface (bare creates,
+- `/minigame queue save-the-kweebecs canyon` — queueing that map's instance
+- `/minigame create save-the-kweebecs [map]` stays the admin/testing surface (bare creates,
   forced starts via `/minigame start`)
 - a minigame with no maps (or a saved data-dir definition) keeps the legacy
   in-world mode
@@ -102,7 +101,7 @@ time.
 ## Authoring a map (instance)
 
 1. **Build the world.** Author geometry plus the contract regions of
-   `StkContract` (`SPAWN_KWEEBEC` / `SPAWN_TRORK` spawn types, one `CAGE`
+   `WorldContract` (`SPAWN_KWEEBECS` / `SPAWN_TRORKS` spawn types, one `CAGE`
    volume/point per cage, optional `SHOP_*`): build in a creative/edit world,
    author regions with the vanilla point/volume tools (a region is any point
    or trigger volume carrying a bare `<type>` tag key with no value — spawn
@@ -120,12 +119,12 @@ time.
 3. **Drop it into the pack**: `src/main/resources/Server/Instances/<Name>/` —
    and check the `SpawnProvider`/`Seed`/time values copied from the edit world
    make sense as instanced defaults.
-4. **Register it**: add `Server/MinigameMaps/SaveTheKweebecs/<mapId>.json`
-   with `Instance: "<Name>"` and list the map id in `stk.json`'s `Maps`. After
+4. **Register it**: add `Server/MinigameMaps/save-the-kweebecs/<mapId>.json`
+   with `Instance: "<Name>"` and list the map id in `save-the-kweebecs.json`'s `Maps`. After
    a restart (or plugin reload), `/minigame defs list` shows the compiled
-   definitions and `/minigame create stk` teleports out of the default world.
+   definitions and `/minigame create save-the-kweebecs` teleports out of the default world.
 
-## Runtime notes (0.6.8→0.7.0 shared source)
+## Runtime notes
 
 - The framework requires **≥ 0.4** (`depends("gg.ginco:MinigameFramework",
   ">=0.4")`): the asset types and the definition compiler live there.
