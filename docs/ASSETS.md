@@ -21,15 +21,10 @@ and the framework compiles our assets into `MinigameDefinition`s —
 ```
 Server/
 ├── Minigames/SaveTheKweebecs/
-│   └── stk.json                  # Minigame asset (id "stk"; Maps: trork-fort, canyon)
+│   └── stk.json                  # Minigame asset (id "stk"; Maps: canyon)
 ├── MinigameMaps/SaveTheKweebecs/
-│   ├── trork-fort.json           # MinigameMap asset (id "trork-fort")
 │   └── canyon.json               # MinigameMap asset (id "canyon")
 └── Instances/
-    ├── TrorkFort/
-    │   ├── instance.bson         # world config template (void world, PvP)
-    │   ├── resources/            # empty-state world resources
-    │   └── chunks/               # ← NOT YET: drop the authored map here
     └── Canyon/
         ├── instance.bson         # imported authored desert world (play-adapted)
         ├── chunks/               # 12 authored region files
@@ -90,7 +85,7 @@ admin `/minigame create` (raw/testing):
 
 - `/minigame queue stk` — joins (or creates) the open queue; a **random
   playable** map when none is running and no map was named
-- `/minigame queue stk trork-fort` — queueing that map's instance
+- `/minigame queue stk canyon` — queueing that map's instance
 - `/minigame create stk [map]` stays the admin/testing surface (bare creates,
   forced starts via `/minigame start`)
 - a minigame with no maps (or a saved data-dir definition) keeps the legacy
@@ -129,8 +124,6 @@ time.
    with `Instance: "<Name>"` and list the map id in `stk.json`'s `Maps`. After
    a restart (or plugin reload), `/minigame defs list` shows the compiled
    definitions and `/minigame create stk` teleports out of the default world.
-5. The template `TrorkFort` slot already exists — replace its `instance.bson`
-   values and empty `resources/` with the authored ones.
 
 ## Runtime notes (0.6.8→0.7.0 shared source)
 

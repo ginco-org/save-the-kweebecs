@@ -1,8 +1,7 @@
 {
   "DisplayName": "Save the Kweebecs",
-  "DefaultMap": "trork-fort",
+  "DefaultMap": "canyon",
   "Maps": [
-    "trork-fort",
     "canyon"
   ],
   "Behaviors": [
