@@ -1,8 +1,8 @@
 {
   "DisplayName": "Save the Kweebecs",
-  "DefaultMap": "canyon",
+  "DefaultMap": "Canyon",
   "Maps": [
-    "canyon"
+    "Canyon"
   ],
   "Behaviors": [
     "save-the-kweebecs-cages",

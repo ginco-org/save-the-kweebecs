@@ -19,10 +19,10 @@ and the framework compiles our assets into `MinigameDefinition`s —
 
 ```
 Server/
-├── Minigames/save-the-kweebecs/
-│   └── save-the-kweebecs.json    # Minigame asset (id "save-the-kweebecs"; Maps: canyon)
-├── MinigameMaps/save-the-kweebecs/
-│   └── canyon.json               # MinigameMap asset (id "canyon")
+├── Minigames/SaveTheKweebecs/
+│   └── SaveTheKweebecs.json      # Minigame asset (id "SaveTheKweebecs"; Maps: Canyon)
+├── MinigameMaps/SaveTheKweebecs/
+│   └── Canyon.json               # MinigameMap asset (id "Canyon")
 └── Instances/
     └── Canyon/
         ├── instance.bson         # imported authored desert world (play-adapted)
@@ -55,7 +55,7 @@ points).
 |---|---|---|
 | `DisplayName` | string | shown to players |
 | `Maps` | string[] | map asset ids this game type is playable on; empty = legacy in-world mode |
-| `DefaultMap` | string | which listed map the bare `save-the-kweebecs` definition points at; required once more than one map is listed |
+| `DefaultMap` | string | which listed map the bare `SaveTheKweebecs` definition points at; required once more than one map is listed |
 | `Behaviors` | string[] | `GameBehaviors` ids activated for every instance (`save-the-kweebecs-cages`, `save-the-kweebecs-economy`, `save-the-kweebecs-round`) |
 | `Teams` | TeamDefinition[] | `{ Name, Color (int), MaxPlayers (-1 = unlimited) }` — the same codec as saved definitions |
 | `MinPlayers` | int | auto-start floor: the queue moves Waiting → Countdown once this many players are in (`<= 0` = manual start only). Shipped value: 2 |
@@ -76,16 +76,19 @@ framework's codecs are `AssetBuilderCodec`s.
 
 ## Resolved plays and maps
 
-For minigame `save-the-kweebecs` the framework compiles **one definition** (`save-the-kweebecs` — teams,
-behaviors, default map's instance). Where it is played comes from the
+For minigame `SaveTheKweebecs` the framework compiles **one definition** (`SaveTheKweebecs` — teams,
+behaviors, default map's instance). Asset ids are the file name minus extension, and Hytale
+asset keys must be PascalCase (capitalized first letter — the vanilla asset store rejects
+lowercase file names with an `incorrect format` warning), so pack ids carry no dashes and
+read as one word: `SaveTheKweebecs`, `Canyon`. Where it is played comes from the
 resolution (`DefinitionStore.resolve`) behind the player-facing
 `/minigame queue <minigame> [<map>]` (queued/balanced/auto-started) and the
 admin `/minigame create` (raw/testing):
 
-- `/minigame queue save-the-kweebecs` — joins (or creates) the open queue; a **random
+- `/minigame queue SaveTheKweebecs` — joins (or creates) the open queue; a **random
   playable** map when none is running and no map was named
-- `/minigame queue save-the-kweebecs canyon` — queueing that map's instance
-- `/minigame create save-the-kweebecs [map]` stays the admin/testing surface (bare creates,
+- `/minigame queue SaveTheKweebecs Canyon` — queueing that map's instance
+- `/minigame create SaveTheKweebecs [map]` stays the admin/testing surface (bare creates,
   forced starts via `/minigame start`)
 - a minigame with no maps (or a saved data-dir definition) keeps the legacy
   in-world mode
@@ -119,10 +122,11 @@ time.
 3. **Drop it into the pack**: `src/main/resources/Server/Instances/<Name>/` —
    and check the `SpawnProvider`/`Seed`/time values copied from the edit world
    make sense as instanced defaults.
-4. **Register it**: add `Server/MinigameMaps/save-the-kweebecs/<mapId>.json`
-   with `Instance: "<Name>"` and list the map id in `save-the-kweebecs.json`'s `Maps`. After
+4. **Register it**: add `Server/MinigameMaps/SaveTheKweebecs/<MapId>.json`
+   (PascalCase id — Hytale asset keys) with `Instance: "<Name>"` and list the map id in
+   `SaveTheKweebecs.json`'s `Maps`. After
    a restart (or plugin reload), `/minigame defs list` shows the compiled
-   definitions and `/minigame create save-the-kweebecs` teleports out of the default world.
+   definitions and `/minigame create SaveTheKweebecs` teleports out of the default world.
 
 ## Runtime notes
 

@@ -10,6 +10,10 @@ The project name is `save-the-kweebecs`; context picks the spelling:
 - Machine ids, paths, filenames, command args: `save-the-kweebecs`
 - Kotlin identifiers (dashes illegal): `savethekweebecs`
 
+Hytale asset ids break the machine-id rule on purpose: asset keys must be
+PascalCase (vanilla asset-store format check), so pack asset files and the
+ids they mint are `SaveTheKweebecs` / `Canyon` — see `docs/ASSETS.md`.
+
 No `stk` abbreviation; bare `kweebecs` never names the project. `Kweebecs`/`Trorks` are the in-game factions only (team names, the `SPAWN_KWEEBECS` region tag, the NPC role `Intelligent/Neutral/Kweebec`).
 
 ## Development
