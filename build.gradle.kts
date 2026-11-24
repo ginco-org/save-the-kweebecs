@@ -13,10 +13,10 @@ dependencies {
     // hytale-codec and kotlin-stdlib transitively). Compile-time only —
     // at RUNTIME the classes resolve through the plugin bridge from the
     // framework plugin installed in mods/ (hard dependency declared below).
-    // Never bundle it: one server, one framework. 0.4.0 carries the
-    // framework-owned Minigame/MinigameMap asset types, the queue flows and
-    // the member events.
-    implementation("gg.ginco:hytale-minigame-framework:0.5.0")
+    // Never bundle it: one server, one framework. 0.6.0 targets Hytale
+    // 0.7.7 and carries the framework-owned Minigame/MinigameMap asset
+    // types, the queue flows and the member events.
+    implementation("gg.ginco:hytale-minigame-framework:0.6.0")
 }
 
 // Dependency plugin jars deployed into the dev server's mods/ at boot. hygradle
@@ -45,7 +45,7 @@ hytale {
     group = "gg.ginco"
     name = "save-the-kweebecs"
     description = "Save the Kweebecs minigame for Hytale"
-    serverVersion = "0.7.2"
+    serverVersion = "0.7.7"
     mainClass = "gg.ginco.savethekweebecs.Plugin"
     // No bundling: the framework must exist exactly ONCE per server (its own
     // jar in mods/), because each plugin jar gets its own PluginClassLoader —
@@ -58,10 +58,10 @@ hytale {
 
     // Hard dependency: the server refuses to load this plugin when the
     // framework plugin (installed from its GitHub Release fat jar) is absent.
-    // >=0.4 — tracks the framework release we compile against; the
+    // >=0.6 — tracks the framework release we compile against; the
     // framework-owned Minigame/MinigameMap asset types that our bundled
     // pack feeds live here (docs/ASSETS.md).
-    depends("gg.ginco:MinigameFramework", ">=0.4")
+    depends("gg.ginco:MinigameFramework", ">=0.6")
     // The Kotlin runtime contract: our classes bind stdlib through the
     // carrier's loader; without this hard dep the resolution would be
     // best-effort across whatever else happens to carry stdlib.
