@@ -9,6 +9,8 @@ import com.hypixel.hytale.server.core.util.FillerBlockUtil
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.RotationTuple
 import com.hypixel.hytale.server.core.entity.UUIDComponent
 import com.hypixel.hytale.server.npc.NPCPlugin
+import com.hypixel.hytale.server.npc.interactions.UseNPCInteraction
+import com.hypixel.hytale.server.npc.role.support.StateSupport
 import gg.ginco.minigame.behavior.GameBehavior
 import gg.ginco.minigame.behavior.MinigameContext
 import gg.ginco.minigame.util.Regions
@@ -61,7 +63,7 @@ class CageBehavior(ctx: MinigameContext) : GameBehavior("save-the-kweebecs-cages
         val chunkStore = ctx.world.chunkStore
         val sectionRef = chunkStore.getChunkSectionReferenceAtBlock(centerX, y, centerZ)
             ?: return
-        val blockType: BlockType = BlockType.getAssetMap().getAsset(WorldContract.CAGE_BLOCK_ID)
+        val blockType: BlockType = BlockType.getAssetMap().getAsset(WorldContract.CAGE_STAMP_BLOCK_ID)
             ?: return
         BlockOperations.setBlock(
             chunkStore, sectionRef,
@@ -93,5 +95,17 @@ class CageBehavior(ctx: MinigameContext) : GameBehavior("save-the-kweebecs-cages
         val uuid = ctx.store.getComponent(pair.first(), UUIDComponent.getComponentType())?.uuid
             ?: throw IllegalStateException("spawned caged kweebec has no UUIDComponent")
         BlockGate.registerRescueNpc(ctx.world.name, uuid, site.id)
+        // Make the prisoner clickable: an NPC only honors entity-use attempts
+        // from players it was marked interactable toward (StateSupport's
+        // interactablePlayers set — vanilla roles do this via AI actions; a
+        // bare spawned NPC has none, so clicks silently no-op). Best effort:
+        // the proximity rescue below is the guaranteed path.
+        runCatching {
+            val stateSupport = StateSupport.get(pair.first(), ctx.store)
+            for (member in ctx.players().all()) {
+                stateSupport.setInteractable(member, true)
+                stateSupport.addContextualInteraction(member, UseNPCInteraction.DEFAULT_ID)
+            }
+        }
     }
 }

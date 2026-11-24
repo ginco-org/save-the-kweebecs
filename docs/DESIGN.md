@@ -31,6 +31,16 @@ messages that explain the playtest reason.
 - Players **respawn** (eliminations feed the economy but never end the
   round early — revisit only if playtest disagrees).
 
+## Kits
+
+- Members receive their team's **basic kit** the moment they join the
+  instance (and again on reconnect — a disconnect destroys the entity and
+  its inventory): Kweebecs a tribal spear, Trorks a stone trork club
+  (`WorldContract` kit ids). Joining replaces whatever the player carried in.
+- **Items are never dropped on death**: the instance world's death config
+  is pinned to `ItemsLossMode.NONE` at activation, so kits persist across
+  respawns — the economy, not item loss, is the death consequence.
+
 ## Economy
 
 - Both teams earn **coins**: kills for anyone (PvP inside the round),
@@ -77,7 +87,8 @@ console than silent wrong-plugin-on-wrong-map behavior).
   Ending → Cleanup); the round clock starts at the Countdown→Playing
   transition (`PhaseChangedEvent`), and both win paths end the round via
   `Phases.set` + `Phase.ending(reason)`.
-- Behaviors (`save-the-kweebecs-cages`, `save-the-kweebecs-economy`, `save-the-kweebecs-round`) + five ECS gate
+- Behaviors (`save-the-kweebecs-cages`, `save-the-kweebecs-economy`,
+  `save-the-kweebecs-round`, `save-the-kweebecs-kits`) + five ECS gate
   systems (block damage/break/place, rescue click, kill coins, kweebec
   shield — see `BlockGate.kt`) registered once at plugin setup, active
   only in gated instance worlds.

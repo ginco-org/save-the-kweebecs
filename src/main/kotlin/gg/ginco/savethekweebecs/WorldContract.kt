@@ -25,16 +25,43 @@ object WorldContract {
 
     // The only breakable block ids (see BlockGate): the cage bars, and
     // the fortification wall trorks place.
-    const val CAGE_BLOCK_ID = "Deco_Trork_Cage"
+    /**
+     * Blocks that count as cage bars — all breakable, and breaking any of
+     * them opens the enclosing CAGE site. The authored Canyon cages are
+     * built from the Deco_Iron_Bars family (connected variants have their
+     * own ids); Deco_Trork_Cage is the dev-map placeholder stamp.
+     */
+    val CAGE_BLOCK_IDS = setOf(
+        "Deco_Iron_Bars",
+        "Deco_Iron_Bars_Corner",
+        "Deco_Iron_Bars_Platforms",
+        "Deco_Trork_Cage",
+    )
+
+    /** The dev-map placeholder cage stamp ([CageBehavior]). */
+    const val CAGE_STAMP_BLOCK_ID = "Deco_Trork_Cage"
+
+    /** The fortification wall trorks place (the other breakable kind). */
     const val BARRICADE_BLOCK_ID = "Wood_Village_Wall_Full"
 
     const val ROUND_SECONDS = 7 * 60
 
-    /** The NPC role the caged kweebecs spawn with (game asset `NPC/Attitude/Roles/…`). */
-    const val CAGED_KWEEBEC_ROLE = "Intelligent/Neutral/Kweebec"
+    /** The NPC role the caged kweebecs spawn with. Role builder ids are BARE
+     *  FILENAMES of spawnable role assets under Server/NPC/Roles/…
+     *  (BuilderManager.builderNameFromPath strips the directory + extension).
+     *  Kweebec_Prisoner is "Type": "Abstract" — abstract roles are excluded
+     *  from the spawnable builder registry; Kweebec_Sapling (a Variant) is
+     *  spawnable (verified at runtime: getRoleTemplateNames hasSapling=true). */
+    const val CAGED_KWEEBEC_ROLE = "Kweebec_Sapling"
 
     const val COINS_PER_KILL = 10
     const val COINS_PER_RESCUE = 25
+
+    /** Basic kit items each member receives on entering the instance (vanilla item ids).
+     *  Kweebecs carry a pickaxe: the cage bars are the rescue path. */
+    const val KIT_KWEEBEC_ITEM = "Weapon_Spear_Tribal"
+    const val KIT_KWEEBEC_TOOL = "Tool_Pickaxe_Iron"
+    const val KIT_TRORK_ITEM = "Weapon_Club_Stone_Trork"
 
     /** Framework stat ids double as the coin ledger (player-scoped + total). */
     const val STAT_KILLS = "kills"

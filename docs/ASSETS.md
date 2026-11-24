@@ -56,7 +56,7 @@ points).
 | `DisplayName` | string | shown to players |
 | `Maps` | string[] | map asset ids this game type is playable on; empty = legacy in-world mode |
 | `DefaultMap` | string | which listed map the bare `SaveTheKweebecs` definition points at; required once more than one map is listed |
-| `Behaviors` | string[] | `GameBehaviors` ids activated for every instance (`save-the-kweebecs-cages`, `save-the-kweebecs-economy`, `save-the-kweebecs-round`) |
+| `Behaviors` | string[] | `GameBehaviors` ids activated for every instance (`save-the-kweebecs-cages`, `save-the-kweebecs-economy`, `save-the-kweebecs-round`, `save-the-kweebecs-kits`) |
 | `Teams` | TeamDefinition[] | `{ Name, Color (int), MaxPlayers (-1 = unlimited) }` — the same codec as saved definitions |
 | `MinPlayers` | int | auto-start floor: the queue moves Waiting → Countdown once this many players are in (`<= 0` = manual start only). Shipped value: 2 |
 | `MaxPlayers` | int | join cap; `<= 0` = uncapped. Shipped value: 20 (10 authored spawn points per side) |
