@@ -15,14 +15,15 @@ class Plugin(init: JavaPluginInit) : JavaPlugin(init) {
         GameBehaviors.register("save-the-kweebecs-economy") { ctx -> EconomyBehavior(ctx) }
         GameBehaviors.register("save-the-kweebecs-round") { ctx -> RoundBehavior(ctx) }
         GameBehaviors.register("save-the-kweebecs-kits") { ctx -> KitBehavior(ctx) }
+        GameBehaviors.register("save-the-kweebecs-shops") { ctx -> ShopBehavior(ctx) }
         // Round-critical ECS gates — see BlockGate.
         entityStoreRegistry.registerSystem(BlockGate.DamageGate())
         entityStoreRegistry.registerSystem(BlockGate.BreakGate())
         entityStoreRegistry.registerSystem(BlockGate.PlaceGate())
         entityStoreRegistry.registerSystem(BlockGate.RescueGate())
+        entityStoreRegistry.registerSystem(ShopGate())
         entityStoreRegistry.registerSystem(BlockGate.KillCoinGate())
         entityStoreRegistry.registerSystem(BlockGate.RescueNpcShield())
-        entityStoreRegistry.registerSystem(BlockGate.RescueProximitySystem())
         entityStoreRegistry.registerSystem(BlockGate.TeamDamageGate())
         entityStoreRegistry.registerSystem(BlockGate.RespawnSpawnGate())
         logger.at(Level.INFO).log("behaviors registered: %s", GameBehaviors.ids())

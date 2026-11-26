@@ -9,7 +9,6 @@ import com.hypixel.hytale.server.core.entity.entities.Player
 import com.hypixel.hytale.server.core.inventory.InventoryUtils
 import com.hypixel.hytale.server.core.inventory.ItemStack
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
-import com.hypixel.hytale.server.npc.role.support.StateSupport
 import gg.ginco.minigame.behavior.GameBehavior
 import gg.ginco.minigame.behavior.MinigameContext
 import gg.ginco.minigame.component.TeamData
@@ -41,14 +40,6 @@ class KitBehavior(ctx: MinigameContext) : GameBehavior("save-the-kweebecs-kits")
             // expects Adventure movement + no block breaking outside the gates.
             Player.setGameMode(e.playerEntity, GameMode.Adventure, ctx.store)
             giveKit(ctx, e.playerEntity)
-            // Prisoners spawned before this member arrived must be clickable
-            // by them too (interactability is per-player on the NPC). Fresh
-            // scan: stored refs would go stale as prisoners despawn.
-            runCatching {
-                BlockGate.forEachAlivePrisoner(ctx.store, ctx.world.name) { npcRef, _ ->
-                    StateSupport.get(npcRef, ctx.store).setInteractable(e.playerEntity, true)
-                }
-            }
         }
     }
 

@@ -8,8 +8,9 @@ import com.hypixel.hytale.component.query.Query
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.component.Store
 import com.hypixel.hytale.component.system.EntityEventSystem
-import com.hypixel.hytale.component.system.tick.TickingSystem
 import com.hypixel.hytale.server.core.Message
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.RotationTuple
 import com.hypixel.hytale.server.core.entity.UUIDComponent
 import com.hypixel.hytale.server.core.event.events.ecs.BreakBlockEvent
 import com.hypixel.hytale.server.core.event.events.ecs.DamageBlockEvent
@@ -20,8 +21,11 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.modules.entity.damage.Damage
 import com.hypixel.hytale.server.core.modules.entity.damage.event.KillFeedEvent
 import com.hypixel.hytale.server.core.universe.PlayerRef
+import com.hypixel.hytale.server.core.universe.world.SetBlockSettings
+import com.hypixel.hytale.server.core.universe.world.chunk.BlockOperations
 import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
+import com.hypixel.hytale.server.core.util.FillerBlockUtil
 import gg.ginco.minigame.component.EndReason
 import gg.ginco.minigame.component.InMinigame
 import gg.ginco.minigame.component.Phase
@@ -203,10 +207,11 @@ object BlockGate {
     }
 
     /**
-     * Cancels breaks on non-breakable blocks; lets the two breakable kinds
-     * through and OPENS the cage site when a cage block breaks (site identity
-     * = the `CAGE` region containing the broken block). Coins and the win
-     * check wait for the rescue click — the break only frees the kweebec.
+     * Cancels breaks on non-breakable blocks; lets barricades through and
+     * OPENS the cage site when a cage block breaks (site identity = the `CAGE`
+     * region containing the broken block). Cage breaks are taken over so the
+     * block is removed without its vanilla item drop. Coins and the win check
+     * wait for the rescue click — the break only frees the kweebec.
      */
     class BreakGate : EntityEventSystem<EntityStore, BreakBlockEvent>(BreakBlockEvent::class.java) {
         override fun handle(
@@ -224,22 +229,31 @@ object BlockGate {
                 return
             }
             if (typeId !in WorldContract.CAGE_BLOCK_IDS) return
-            val position = Vector3d(
-                event.targetBlock.x().toDouble(),
-                event.targetBlock.y().toDouble(),
-                event.targetBlock.z().toDouble())
+            // Cancel the vanilla break so the cage cannot drop its item, then
+            // remove the block ourselves on the world queue.
+            event.isCancelled = true
+            val target = event.targetBlock
+            val x = target.x()
+            val y = target.y()
+            val z = target.z()
+            val position = Vector3d(x.toDouble(), y.toDouble(), z.toDouble())
             val site = Regions.regionsOf(world, WorldContract.CAGE)
                 .firstOrNull { it.contains(position) }
-            com.hypixel.hytale.logger.HytaleLogger.forEnclosingClass()
-                .at(java.util.logging.Level.INFO).log(
-                    "MDBG break: cage block at %s -> site=%s", position, site?.id)
-            if (site == null) return
-            if (!BlockGate.markBroken(world.name, site.id)) return
-            // Store writes must not run mid-dispatch — hop to the world queue.
             world.execute {
-                val controllerRef = controllerOf(store, world) ?: return@execute
-                PlayerSet(store, controllerRef).sendMessage(Message.raw(
-                    "A cage has been opened — kweebecs, reach the prisoner inside to rescue them!"))
+                val chunkStore = world.chunkStore
+                val sectionRef = chunkStore.getChunkSectionReferenceAtBlock(x, y, z)
+                    ?: return@execute
+                BlockOperations.setBlock(
+                    chunkStore, sectionRef,
+                    x, y, z,
+                    BlockType.EMPTY_ID,
+                    BlockType.EMPTY,
+                    RotationTuple.NONE_INDEX,
+                    FillerBlockUtil.NO_FILLER,
+                    SetBlockSettings.NONE,
+                )
+                if (site == null) return@execute
+                BlockGate.markBroken(world.name, site.id)
             }
         }
 
@@ -287,11 +301,6 @@ object BlockGate {
             val siteId = BlockGate.rescueSiteOf(world.name, npcUuid)
             val clickerRef = chunk.getReferenceTo(index)
             val team = teamNameOf(store, clickerRef)
-            val siteState = siteId?.let { BlockGate.stateOf(world.name, it) }
-            com.hypixel.hytale.logger.HytaleLogger.forEnclosingClass()
-                .at(java.util.logging.Level.INFO).log(
-                    "MDBG use: target=%s registered=%b team=%s site=%s state=%s",
-                    npcUuid, siteId != null, team, siteId, siteState)
             if (siteId == null) return
             if (team != WorldContract.TEAM_KWEEBEC) return
             if (!BlockGate.markRescued(world.name, siteId)) return
@@ -359,66 +368,6 @@ object BlockGate {
         }
 
         override fun getQuery(): Query<EntityStore>? = Archetype.empty()
-    }
-
-    /**
-     * Proximity rescue fallback: a kweebec member standing within [RADIUS]
-     * of a BROKEN site's prisoner rescues them — no click required. The
-     * entity-use path depends on client-side interaction offers that a bare
-     * spawned NPC may never surface; approach cannot be blocked. Runs every
-     * [INTERVAL_TICKS] ticks in gated worlds.
-     */
-    class RescueProximitySystem : TickingSystem<EntityStore>() {
-
-        /** Per WORLD THREAD tick counter (systems tick on every world). */
-        private val tickCounter = ThreadLocal.withInitial { 0L }
-
-        override fun tick(dt: Float, systemIndex: Int, store: Store<EntityStore>) {
-            val n = tickCounter.get() + 1
-            tickCounter.set(n)
-            if (n % INTERVAL_TICKS != 0L) return
-            val world = store.externalData.world
-            if (!gated(world.name)) return
-            val controllerRef = Instances.findController(world) ?: return
-
-            val memberPositions = PlayerSet(store, controllerRef).all().mapNotNull { member ->
-                if (teamNameOf(store, member) != WorldContract.TEAM_KWEEBEC) return@mapNotNull null
-                val transform = store.getComponent(member, TransformComponent.getComponentType())
-                    ?: return@mapNotNull null
-                member to transform.position
-            }
-            if (memberPositions.isEmpty()) return
-
-            val rescues = mutableListOf<Triple<Ref<EntityStore>, String, Ref<EntityStore>>>()
-            forEachAlivePrisoner(store, world.name) { npcRef, siteId ->
-                if (stateOf(world.name, siteId) != SiteState.BROKEN) return@forEachAlivePrisoner
-                val npcTransform = store.getComponent(npcRef, TransformComponent.getComponentType())
-                    ?: return@forEachAlivePrisoner
-                val npcPos = npcTransform.position
-                val rescuer = memberPositions.firstOrNull { (_, pos) ->
-                    pos.distanceSquared(npcPos) <= RADIUS * RADIUS
-                }?.first ?: return@forEachAlivePrisoner
-                rescues.add(Triple(npcRef, siteId, rescuer))
-            }
-            // Writes AFTER the scan — forEachChunk holds the store's processing
-            // lock, and executing rescues inside it (removeEntity, phases) threw
-            // "Store is currently processing" and killed the world thread,
-            // leaving zombie queue worlds that accepted nobody.
-            for ((npcRef, siteId, rescuer) in rescues) {
-                if (!markRescued(world.name, siteId)) continue
-                PlayerSet(store, controllerRef).sendMessage(Message.raw(
-                    "A kweebec has been rescued!"))
-                executeRescue(store, world, npcRef, siteId, rescuer)
-            }
-        }
-
-        companion object {
-            /** Rescue distance (blocks) from the prisoner. */
-            const val RADIUS = 3.0
-
-            /** Check cadence in ticks (10 = 0.5s at 20 TPS). */
-            const val INTERVAL_TICKS = 10L
-        }
     }
 
     /**

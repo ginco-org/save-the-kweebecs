@@ -1,0 +1,60 @@
+$C = "../Common.ui";
+
+Group {
+    Anchor: (Width: 480, Height: 110);
+    Padding: (Horizontal: 1, Vertical: 6);
+
+    Group #CardBorder {
+        Anchor: (Full: 0);
+        Background: #14202c;
+        Padding: (Horizontal: 2, Vertical: 1);
+        LayoutMode: Left;
+
+        Group #IconContainer {
+            Anchor: (Height: 100, Left: 10);
+            LayoutMode: Left;
+
+            Group #SlotBorder {
+                ItemSlot #ItemIcon {
+                    Anchor: (Width: 64, Height: 64);
+                    ShowQualityBackground: false;
+                }
+
+                Label #ItemQuantity {
+                    Anchor: (Right: 4, Bottom: 2);
+                    Style: (FontSize: 13, TextColor: #ffffff, HorizontalAlignment: End, VerticalAlignment: End, RenderBold: true);
+                }
+            }
+        }
+
+        Group #ItemDetils {
+            Anchor: (Height: 80);
+            Padding: (Left: 10);
+            LayoutMode: Top;
+
+            Label #ItemName {
+                Padding: (Top: 2);
+                Style: (FontSize: 15, TextColor: #e0e8f0, HorizontalAlignment: Center, VerticalAlignment: Center, RenderBold: true, Wrap: true);
+                Text: "Item";
+            }
+
+            Label #ItemDescription {
+                Style: (FontSize: 11, TextColor: #8a9aaa, Wrap: true);
+                Text: "";
+            }
+
+            Group #CostArea {
+                LayoutMode: Left;
+
+                Label #ItemCost {
+                    Style: (FontSize: 13, TextColor: #a0c8e0, RenderBold: true);
+                    Text: "10 Coins";
+                }
+            }
+        }
+    }
+
+    TextButton #BuyButton {
+        Anchor: (Full: 0);
+    }
+}

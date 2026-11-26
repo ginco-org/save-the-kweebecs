@@ -50,13 +50,15 @@ messages that explain the playtest reason.
   survival).
 - Coins live in the instance stats (`kills`, `rescues`, `coins` per
   player — the ledger) mirrored into an in-memory wallet for fast reads;
-  `/shop` shows the balance and spends from the wallet.
-- `/shop` — a command shop for now; an in-world shopkeeper NPC can come later
+  `/shop` shows the balance, the shopkeeper NPCs spend from the wallet.
+- Each team has an in-world **shopkeeper NPC** at every `KWEEBEC_SHOP` /
+  `TRORK_SHOP` point. Clicking one opens the coin shop page; the other
+  team's shopkeeper refuses the click.
 
 | Team | Shop |
 |---|---|
-| Kweebecs | weapons and infiltration gear |
-| Trorks | weapons **and fortification blocks** |
+| Kweebecs | pickaxes, spears, health potions |
+| Trorks | trork weapons, bombs, potions |
 
 - Trork-placed **fortification blocks** are the **only breakable blocks on
   the map**, alongside the cage bars. All world blocks (the fort shell,
@@ -75,7 +77,7 @@ world ships with the same types once region-authoring lands):
 |---|---|
 | `SPAWN_KWEEBECS` / `SPAWN_TRORKS` | spawn points per team — the framework derives the type id as `SPAWN_` + the uppercase team name (`Regions.spawnTypeFor`) |
 | `CAGE` region per cage site | cage anchor; the plugin opens the cage, spawns the kweebec NPC, and tracks the rescue state at that site |
-| `SHOP_KWEEBEC` / `SHOP_TRORK` (optional) | shop interaction zones |
+| `SHOP_KWEEBEC` / `SHOP_TRORK` (optional) | shopkeeper spawn points; the NPC is spawned at the point and opens that team's shop on click |
 
 Behavior code never hardcodes coordinates — it looks up the contract and
 fails loudly at instance start when the world is missing it (better a red
@@ -88,18 +90,18 @@ console than silent wrong-plugin-on-wrong-map behavior).
   transition (`PhaseChangedEvent`), and both win paths end the round via
   `Phases.set` + `Phase.ending(reason)`.
 - Behaviors (`save-the-kweebecs-cages`, `save-the-kweebecs-economy`,
-  `save-the-kweebecs-round`, `save-the-kweebecs-kits`) + five ECS gate
-  systems (block damage/break/place, rescue click, kill coins, kweebec
-  shield — see `BlockGate.kt`) registered once at plugin setup, active
-  only in gated instance worlds.
+  `save-the-kweebecs-round`, `save-the-kweebecs-kits`,
+  `save-the-kweebecs-shops`) + ECS gate systems (block
+  damage/break/place, rescue click, shop click, kill coins, kweebec
+  shield — see `BlockGate.kt` and `ShopGate.kt`) registered once at plugin
+  setup, active only in gated instance worlds.
 - Coins: `InstanceStats` counters (per-player `kills`/`rescues`/`coins` +
   instance totals) with the wallet as the fast read layer.
 
 ## Deliberately out of scope
 
-- NPC trork mobs (both teams are players; caged kweebecs are the only NPCs)
-- Shopkeeper UI (command shop first) and actual shop offers (deny paths
-  and the balance read exist; offers land with item/block integration)
+- NPC trork mobs (both teams are players; caged kweebecs and the two
+  shopkeepers are the only NPCs)
 - Results board at Ending (a chat announcement covers it)
 - Ranked/balancing systems, multiple rounds, map rotation
 
@@ -108,19 +110,26 @@ console than silent wrong-plugin-on-wrong-map behavior).
 - **Block breakability gate**: `DamageBlockEvent` / `BreakBlockEvent`
   (cancellable ECS events carrying the target block) are consumed by
   `EntityEventSystem`s registered on the entity-store registry (the
-  `TriggerVolumeBlockEventSystems.BlockBroken` builtin pattern; queries are
+  `TriggerVolumeBlockEvents.BlockBroken` builtin pattern; queries are
   `Archetype.empty()` — the dispatch hands the event's own entity chunk).
   The plugin gates them: cancel everything whose target block is not one
   of the two breakable ids. Cage breaks inside a `CAGE` region flip that
   site INTACT → BROKEN (site state lives in `BlockGate`, keyed by
-  world + site id).
+  world + site id); the plugin removes the cage block itself so it never
+  drops an item.
 - **Block placement**: `PlaceBlockEvent` cancels for non-Trork actors.
 - **Rescue click**: `UseEntityEvent.Pre` (ECS event dispatched for the
   interacting player, `getTargetEntity()` = the kweebec NPC) completes the
   rescue when the site is BROKEN and the clicker is a Kweebec. Kweebec
   NPCs spawn via `NPCPlugin.spawnNPC(store, role, null, position,
-  rotation)` and are registered by uuid → site for the click lookup and
-  the damage shield.
+  rotation)`, are frozen (`Frozen`) so they have no wander AI, and are
+  marked interactable per player — including players who join after the
+  prisoners spawn — so the client offers the click interaction. They are
+  registered by uuid → site for the click lookup and the damage shield.
+- **Shop click**: `UseEntityEvent.Pre` on a registered shopkeeper NPC
+  checks the clicker's `InMinigame` link and team, cancels the vanilla
+  interaction and opens `ShopPage`. Purchases re-check the team and spend
+  from `Wallets` before adding the item.
 - **Kill coins**: `KillFeedEvent.Display` (damage module, dispatched for
   the decedent) names the killer through `Damage.EntitySource.ref`; both
   parties must carry the instance membership (`InMinigame`) for the award

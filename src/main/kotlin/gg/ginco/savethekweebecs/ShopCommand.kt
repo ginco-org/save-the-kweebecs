@@ -30,10 +30,8 @@ class ShopCommand :
         playerRef: PlayerRef,
         world: World,
     ) {
-        // TODO: team gate via Membership once rounds are joined through it.
         val coins = Wallets.balance(playerRef.uuid)
-        context.sendMessage(Message.raw("Shop — coins: $coins"))
-        context.sendMessage(
-            Message.raw("offers coming with item/block integration (DESIGN.md)"))
+        context.sendMessage(Message.raw(
+            "Coins: $coins — visit your team's shopkeeper to spend them."))
     }
 }

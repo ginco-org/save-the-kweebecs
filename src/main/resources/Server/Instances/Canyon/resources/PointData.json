@@ -479,6 +479,78 @@
       "Tags": {
         "SPAWN_TRORKS": ""
       }
+    },
+      "pt_kwshp": {
+        "Position": {
+          "X": 15.0,
+          "Y": 95.0,
+          "Z": 144.0
+        },
+        "Rotation": {
+          "X": 0.0,
+          "Y": 0.0,
+          "Z": 0.0
+        },
+        "Name": "shop_kweebec_1",
+        "Enabled": true,
+        "Shape": "Sphere",
+        "Tags": {
+          "KWEEBEC_SHOP": ""
+        }
+      },
+      "pt_kwshq": {
+        "Position": {
+          "X": 11.0,
+          "Y": 95.0,
+          "Z": 99.0
+        },
+        "Rotation": {
+          "X": 0.0,
+          "Y": 0.0,
+          "Z": 0.0
+        },
+        "Name": "shop_kweebec_2",
+        "Enabled": true,
+        "Shape": "Sphere",
+        "Tags": {
+          "KWEEBEC_SHOP": ""
+        }
+      },
+      "pt_trshp": {
+        "Position": {
+          "X": 111.0,
+          "Y": 95.0,
+          "Z": 129.0
+        },
+        "Rotation": {
+          "X": 0.0,
+          "Y": 0.0,
+          "Z": 0.0
+        },
+        "Name": "shop_trork_1",
+        "Enabled": true,
+        "Shape": "Sphere",
+        "Tags": {
+          "TRORK_SHOP": ""
+        }
+      },
+      "pt_trshq": {
+        "Position": {
+          "X": 111.0,
+          "Y": 96.0,
+          "Z": 84.0
+        },
+        "Rotation": {
+          "X": 0.0,
+          "Y": 0.0,
+          "Z": 0.0
+        },
+        "Name": "shop_trork_2",
+        "Enabled": true,
+        "Shape": "Sphere",
+        "Tags": {
+          "TRORK_SHOP": ""
+        }
+      }
     }
-  }
 }

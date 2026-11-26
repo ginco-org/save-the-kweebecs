@@ -1,5 +1,6 @@
 package gg.ginco.savethekweebecs
 
+import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.math.vector.Rotation3f
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType
 import com.hypixel.hytale.server.core.universe.world.SetBlockSettings
@@ -7,12 +8,12 @@ import com.hypixel.hytale.server.core.universe.world.chunk.BlockOperations
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.core.util.FillerBlockUtil
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.RotationTuple
+import com.hypixel.hytale.server.core.entity.Frozen
 import com.hypixel.hytale.server.core.entity.UUIDComponent
 import com.hypixel.hytale.server.npc.NPCPlugin
-import com.hypixel.hytale.server.npc.interactions.UseNPCInteraction
-import com.hypixel.hytale.server.npc.role.support.StateSupport
 import gg.ginco.minigame.behavior.GameBehavior
 import gg.ginco.minigame.behavior.MinigameContext
+import gg.ginco.minigame.event.PlayerJoinedInstanceEvent
 import gg.ginco.minigame.util.Regions
 import org.joml.Vector3d
 import kotlin.math.floor
@@ -26,7 +27,9 @@ import kotlin.math.floor
  * that site's rescue target (uuid lookup in [BlockGate]).
  *
  * The rescue itself is two steps: kweebecs break the cage, then click the
- * kweebec NPC — [BlockGate.RescueGate] completes it.
+ * kweebec NPC — [BlockGate.RescueGate] completes it. The spawned prisoners
+ * are frozen (no wandering AI) and carry the interaction marker; the rescue
+ * gate enforces which team may click them.
  */
 class CageBehavior(ctx: MinigameContext) : GameBehavior("save-the-kweebecs-cages") {
 
@@ -38,6 +41,10 @@ class CageBehavior(ctx: MinigameContext) : GameBehavior("save-the-kweebecs-cages
             "world missing the CAGE contract regions — not a Save the Kweebecs map (found none)")
         BlockGate.activate(ctx.world.name)
         BlockGate.registerSites(ctx.world.name, sites.map { it.id })
+        ctx.onEvent<PlayerJoinedInstanceEvent> { e ->
+            if (e.instance != ctx.controllerRef) return@onEvent
+            makePrisonersRescuableFor(ctx)
+        }
         // Chunk reads/writes are world-thread work.
         ctx.world.execute {
             for (site in sites) {
@@ -95,17 +102,23 @@ class CageBehavior(ctx: MinigameContext) : GameBehavior("save-the-kweebecs-cages
         val uuid = ctx.store.getComponent(pair.first(), UUIDComponent.getComponentType())?.uuid
             ?: throw IllegalStateException("spawned caged kweebec has no UUIDComponent")
         BlockGate.registerRescueNpc(ctx.world.name, uuid, site.id)
-        // Make the prisoner clickable: an NPC only honors entity-use attempts
-        // from players it was marked interactable toward (StateSupport's
-        // interactablePlayers set — vanilla roles do this via AI actions; a
-        // bare spawned NPC has none, so clicks silently no-op). Best effort:
-        // the proximity rescue below is the guaranteed path.
-        runCatching {
-            val stateSupport = StateSupport.get(pair.first(), ctx.store)
-            for (member in ctx.players().all()) {
-                stateSupport.setInteractable(member, true)
-                stateSupport.addContextualInteraction(member, UseNPCInteraction.DEFAULT_ID)
-            }
+        // Canonical NPC freeze: keeps the prisoner in place and out of the AI
+        // movement/behaviour loop while leaving interaction handling alive.
+        ctx.store.ensureComponent(pair.first(), Frozen.getComponentType())
+        makeRescuable(ctx, pair.first())
+    }
+
+    /** Makes every live prisoner clickable (late joiners see them too). World thread. */
+    private fun makePrisonersRescuableFor(ctx: MinigameContext) {
+        // Collect first: forEachAlivePrisoner holds the store processing lock.
+        val prisoners = mutableListOf<Ref<EntityStore>>()
+        BlockGate.forEachAlivePrisoner(ctx.store, ctx.world.name) { npcRef, _ ->
+            prisoners.add(npcRef)
         }
+        for (npcRef in prisoners) makeRescuable(ctx, npcRef)
+    }
+
+    private fun makeRescuable(ctx: MinigameContext, npcRef: Ref<EntityStore>) {
+        NpcInteraction.makeUsable(ctx.store, npcRef)
     }
 }

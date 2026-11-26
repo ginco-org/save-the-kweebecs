@@ -20,6 +20,10 @@ object WorldContract {
     /** One per cage site: the plugin manages cage state at this anchor. */
     const val CAGE = "CAGE"
 
+    /** Point tags: where each team's shopkeeper NPC spawns. */
+    const val SHOP_KWEEBEC = "KWEEBEC_SHOP"
+    const val SHOP_TRORK = "TRORK_SHOP"
+
     const val TEAM_KWEEBEC = "Kweebecs"
     const val TEAM_TRORK = "Trorks"
 
