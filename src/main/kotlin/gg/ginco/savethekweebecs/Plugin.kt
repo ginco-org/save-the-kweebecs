@@ -16,6 +16,7 @@ class Plugin(init: JavaPluginInit) : JavaPlugin(init) {
         GameBehaviors.register("save-the-kweebecs-round") { ctx -> RoundBehavior(ctx) }
         GameBehaviors.register("save-the-kweebecs-kits") { ctx -> KitBehavior(ctx) }
         GameBehaviors.register("save-the-kweebecs-shops") { ctx -> ShopBehavior(ctx) }
+        GameBehaviors.register("save-the-kweebecs-nameplates") { ctx -> NameplateBehavior(ctx) }
         // Round-critical ECS gates — see BlockGate.
         entityStoreRegistry.registerSystem(BlockGate.DamageGate())
         entityStoreRegistry.registerSystem(BlockGate.BreakGate())

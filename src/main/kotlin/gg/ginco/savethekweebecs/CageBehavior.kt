@@ -1,11 +1,15 @@
 package gg.ginco.savethekweebecs
 
+import com.hypixel.hytale.builtin.adventure.worldevents.WorldEventStorage
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.math.vector.Rotation3f
+import com.hypixel.hytale.math.vector.Transform
+import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType
 import com.hypixel.hytale.server.core.universe.world.SetBlockSettings
 import com.hypixel.hytale.server.core.universe.world.chunk.BlockOperations
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
+import com.hypixel.hytale.server.core.universe.world.worldmap.markers.MapMarkerBuilder
 import com.hypixel.hytale.server.core.util.FillerBlockUtil
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.RotationTuple
 import com.hypixel.hytale.server.core.entity.Frozen
@@ -41,6 +45,11 @@ class CageBehavior(ctx: MinigameContext) : GameBehavior("save-the-kweebecs-cages
             "world missing the CAGE contract regions — not a Save the Kweebecs map (found none)")
         BlockGate.activate(ctx.world.name)
         BlockGate.registerSites(ctx.world.name, sites.map { it.id })
+        registerCageMarkers(ctx, sites)
+        // World events are overworld content: their stages, spawns and
+        // announcements have no place inside a round. Clear the world's active
+        // event storage once, at activation.
+        runCatching { ctx.store.getResource(WorldEventStorage.getResourceType()).clear() }
         ctx.onEvent<PlayerJoinedInstanceEvent> { e ->
             if (e.instance != ctx.controllerRef) return@onEvent
             makePrisonersRescuableFor(ctx)
@@ -58,6 +67,23 @@ class CageBehavior(ctx: MinigameContext) : GameBehavior("save-the-kweebecs-cages
         // The copied instance world is removed wholesale at teardown; the
         // gate must not survive into a later round on the same world name.
         BlockGate.deactivate(ctx.world.name)
+    }
+
+    /** Puts a map marker on every cage site that still holds a prisoner. */
+    private fun registerCageMarkers(ctx: MinigameContext, sites: List<Regions.RegionInfo>) {
+        val centers = sites.associate { it.id to it.center() }
+        val worldName = ctx.world.name
+        ctx.world.worldMapManager.addMarkerProvider("stk_prisoners") { _, _, collector ->
+            for ((siteId, center) in centers) {
+                val state = BlockGate.stateOf(worldName, siteId) ?: continue
+                if (state == BlockGate.SiteState.SAVED) continue
+                collector.add(
+                    MapMarkerBuilder("stk_prisoner_$siteId", "HuntSite.png", Transform(center))
+                        .withName(Message.raw("Kweebec prisoner"))
+                        .build(),
+                )
+            }
+        }
     }
 
     /** Stamps one cage block at the site's center-top cell, best effort. */

@@ -19,6 +19,8 @@ import com.hypixel.hytale.server.core.event.events.ecs.RespawnEvent
 import com.hypixel.hytale.server.core.event.events.ecs.UseEntityEvent
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent
 import com.hypixel.hytale.server.core.modules.entity.damage.Damage
+import com.hypixel.hytale.server.core.modules.entity.damage.DamageEventSystem
+import com.hypixel.hytale.server.core.modules.entity.damage.DamageModule
 import com.hypixel.hytale.server.core.modules.entity.damage.event.KillFeedEvent
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.SetBlockSettings
@@ -138,14 +140,22 @@ object BlockGate {
         return map.replace(siteId, SiteState.INTACT, SiteState.BROKEN)
     }
 
-    /** Rescue click landed: BROKEN → SAVED; true exactly once per site. */
+    /** Rescue click landed: any non-SAVED state → SAVED; true exactly once per site. */
     fun markRescued(worldName: String, siteId: String): Boolean {
         val map = sites[worldName] ?: return false
-        return map.replace(siteId, SiteState.BROKEN, SiteState.SAVED)
+        while (true) {
+            val current = map[siteId] ?: return false
+            if (current == SiteState.SAVED) return false
+            if (map.replace(siteId, current, SiteState.SAVED)) return true
+        }
     }
 
-    /** The site's current state, or null (diagnostics). */
+    /** The site's current state, or null (diagnostics / map markers). */
     fun stateOf(worldName: String, siteId: String): SiteState? = sites[worldName]?.get(siteId)
+
+    /** Snapshot of every site state, for the map marker provider. */
+    fun sitesOf(worldName: String): Map<String, SiteState> =
+        sites[worldName]?.toMap() ?: emptyMap()
 
     /**
      * Executes a rescue for [siteId] in [world] (already flipped BROKEN → SAVED
@@ -163,7 +173,10 @@ object BlockGate {
         val rescuer = rescuerRef?.let { store.getComponent(it, PlayerRef.getComponentType()) }
         if (rescuer != null) EconomyBehavior.awardRescue(store, controllerRef, rescuer)
         store.removeEntity(npcRef, RemoveReason.REMOVE)
-        if (allRescued(world.name)) {
+        val remaining = remainingSites(world.name)
+        PlayerSet(store, controllerRef).sendMessage(Message.raw(
+            "${rescuer?.username ?: "A kweebec"} rescued a kweebec — $remaining left to save!"))
+        if (remaining == 0) {
             PlayerSet(store, controllerRef).sendMessage(Message.raw(
                 "Every kweebec is rescued — Kweebecs win!"))
             Phases.set(store, controllerRef, Phase.ending(EndReason.WIN_CONDITION))
@@ -174,9 +187,28 @@ object BlockGate {
     fun allRescued(worldName: String): Boolean =
         sites[worldName]?.values?.all { it == SiteState.SAVED } ?: false
 
+    /** Sites still INTACT or BROKEN — the round's remaining rescue targets. */
+    fun remainingSites(worldName: String): Int =
+        sites[worldName]?.values?.count { it != SiteState.SAVED } ?: 0
+
     private fun breakable(blockTypeId: String): Boolean =
         blockTypeId in WorldContract.CAGE_BLOCK_IDS ||
             blockTypeId == WorldContract.BARRICADE_BLOCK_ID
+
+    /**
+     * The CAGE site a broken bar belongs to. The authored volume covers the
+     * cage interior, but bars on its rim can fall just outside it; without the
+     * nearest-site fallback those breaks removed the block without opening the
+     * site, leaving a visibly broken cage whose kweebec can never be rescued.
+     */
+    private fun cageSiteAt(world: World, position: Vector3d): Regions.RegionInfo? {
+        val regions = Regions.regionsOf(world, WorldContract.CAGE)
+        regions.firstOrNull { it.contains(position) }?.let { return it }
+        return regions.minByOrNull { it.center().distanceSquared(position) }
+            ?.takeIf { it.center().distanceSquared(position) <= CAGE_FALLBACK_RADIUS_SQ }
+    }
+
+    private const val CAGE_FALLBACK_RADIUS_SQ = 36.0
 
     private fun worldOf(store: Store<EntityStore>): World = store.externalData.world
 
@@ -237,8 +269,7 @@ object BlockGate {
             val y = target.y()
             val z = target.z()
             val position = Vector3d(x.toDouble(), y.toDouble(), z.toDouble())
-            val site = Regions.regionsOf(world, WorldContract.CAGE)
-                .firstOrNull { it.contains(position) }
+            val site = cageSiteAt(world, position)
             world.execute {
                 val chunkStore = world.chunkStore
                 val sectionRef = chunkStore.getChunkSectionReferenceAtBlock(x, y, z)
@@ -303,6 +334,15 @@ object BlockGate {
             val team = teamNameOf(store, clickerRef)
             if (siteId == null) return
             if (team != WorldContract.TEAM_KWEEBEC) return
+            // Entity interaction validation is distance-only (no line of sight),
+            // so clicking through intact bars is possible. Require the cage
+            // opened — or the rescuer physically inside the CAGE volume, which
+            // covers a cage whose break state was missed.
+            val state = BlockGate.stateOf(world.name, siteId)
+            val clickerPos = store.getComponent(clickerRef, TransformComponent.getComponentType())?.position
+            val inside = clickerPos != null &&
+                Regions.regionAt(world, WorldContract.CAGE, Vector3d(clickerPos))?.id == siteId
+            if (state != BlockGate.SiteState.BROKEN && !inside) return
             if (!BlockGate.markRescued(world.name, siteId)) return
             world.execute {
                 BlockGate.executeRescue(store, world, targetRef, siteId, clickerRef)
@@ -352,7 +392,10 @@ object BlockGate {
     }
 
     /** Caged kweebecs are unkillable — the rescue is the click, not a kill. */
-    class RescueNpcShield : EntityEventSystem<EntityStore, Damage>(Damage::class.java) {
+    class RescueNpcShield : DamageEventSystem() {
+        override fun getGroup(): com.hypixel.hytale.component.SystemGroup<EntityStore> =
+            DamageModule.get().filterDamageGroup
+
         override fun handle(
             index: Int,
             chunk: ArchetypeChunk<EntityStore>,
@@ -377,7 +420,10 @@ object BlockGate {
      * NPC hits behave as vanilla). Read-only handler — cancellation is the
      * event's own flag.
      */
-    class TeamDamageGate : EntityEventSystem<EntityStore, Damage>(Damage::class.java) {
+    class TeamDamageGate : DamageEventSystem() {
+        override fun getGroup(): com.hypixel.hytale.component.SystemGroup<EntityStore> =
+            DamageModule.get().filterDamageGroup
+
         override fun handle(
             index: Int,
             chunk: ArchetypeChunk<EntityStore>,
@@ -430,10 +476,9 @@ object BlockGate {
                     transform.teleportPosition(target.position)
                     val rotation = target.rotation ?: transform.rotation
                     target.rotation?.let { transform.teleportRotation(it) }
-                    store.addComponent(
+                    store.ensureComponent(
                         playerRef,
                         com.hypixel.hytale.server.core.modules.entity.teleport.PendingTeleport.getComponentType(),
-                        com.hypixel.hytale.server.core.modules.entity.teleport.PendingTeleport(),
                     )
                     store.getComponent(playerRef, PlayerRef.getComponentType())?.let { pr ->
                         com.hypixel.hytale.server.core.modules.entity.teleport.TeleportSystems
